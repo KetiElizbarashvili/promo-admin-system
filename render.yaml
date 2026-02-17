@@ -36,11 +36,15 @@ services:
       - key: RATE_LIMIT_MAX_REQUESTS
         value: 100
 
+  - type: redis
+    name: promo-redis
+    region: oregon
+    plan: free
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
 databases:
   - name: promo-db
     plan: free
     databaseName: promo_admin
     user: promo_admin
-
-  - name: promo-redis
-    plan: free
