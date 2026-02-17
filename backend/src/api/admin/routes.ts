@@ -28,7 +28,7 @@ router.get(
   validateQuery(leaderboardSchema),
   async (req, res) => {
     try {
-      const { limit, offset } = req.query as { limit: number; offset: number };
+      const { limit, offset } = req.query as unknown as { limit: number; offset: number };
       const leaderboard = await getLeaderboard(
         Math.min(limit, 1000),
         Math.max(offset, 0)

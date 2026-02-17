@@ -26,7 +26,7 @@ export async function createParticipant(
   staffId: number
 ): Promise<Participant> {
   return withTransaction(async (client) => {
-    let uniqueId: string;
+    let uniqueId = generateUniqueID();
     let exists = true;
 
     // Generate unique ID
@@ -44,7 +44,7 @@ export async function createParticipant(
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING id, unique_id, first_name, last_name, gov_id, phone, email,
                  total_points, active_points, status, created_at`,
-      [uniqueId!, firstName, lastName, govId, phone, email]
+      [uniqueId, firstName, lastName, govId, phone, email]
     );
 
     await client.query(
@@ -57,8 +57,8 @@ export async function createParticipant(
 
     // Send Unique ID to participant
     await Promise.all([
-      sendUniqueIDEmail(email, firstName, uniqueId!),
-      sendUniqueIDSMS(phone, uniqueId!),
+      sendUniqueIDEmail(email, firstName, uniqueId),
+      sendUniqueIDSMS(phone, uniqueId),
     ]);
 
     return {

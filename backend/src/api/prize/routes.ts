@@ -39,7 +39,7 @@ router.get(
   '/',
   authenticateToken,
   requireRole(['SUPER_ADMIN', 'STAFF']),
-  async (req, res) => {
+  async (_req, res) => {
     try {
       const prizes = await getAllPrizes();
       res.json({ prizes });
@@ -53,7 +53,7 @@ router.get(
   '/active',
   authenticateToken,
   requireRole(['SUPER_ADMIN', 'STAFF']),
-  async (req, res) => {
+  async (_req, res) => {
     try {
       const prizes = await getActivePrizes();
       res.json({ prizes });

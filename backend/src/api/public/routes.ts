@@ -14,7 +14,7 @@ const limitSchema = z.object({
 
 router.get('/leaderboard', validateQuery(limitSchema), async (req, res) => {
   try {
-    const { limit } = req.query as { limit: number };
+    const { limit } = req.query as unknown as { limit: number };
     const leaderboard = await getPublicLeaderboard(Math.min(limit, 1000));
     res.json({ leaderboard });
   } catch (error) {

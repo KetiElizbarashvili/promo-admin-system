@@ -32,7 +32,7 @@ router.post('/login', loginLimiter, validateBody(loginSchema), async (req, res) 
   }
 });
 
-router.post('/logout', (req, res) => {
+router.post('/logout', (_req, res) => {
   res.json({ message: 'Logged out successfully' });
 });
 

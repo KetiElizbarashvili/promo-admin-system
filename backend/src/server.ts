@@ -23,7 +23,7 @@ app.use(express.json());
 app.use(generalLimiter);
 
 // Health check
-app.get('/health', async (req, res) => {
+app.get('/health', async (_req, res) => {
   try {
     await pool.query('SELECT 1');
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -41,13 +41,13 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/public', publicRoutes);
 
 // Error handler
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
 // 404 handler
-app.use((req, res) => {
+app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 

@@ -42,7 +42,7 @@ const resetPasswordSchema = z.object({
   staffId: z.number(),
 });
 
-router.get('/', authenticateToken, requireRole(['SUPER_ADMIN']), async (req, res) => {
+router.get('/', authenticateToken, requireRole(['SUPER_ADMIN']), async (_req, res) => {
   try {
     const staff = await getAllStaff();
     res.json({ staff });
@@ -58,7 +58,7 @@ router.post(
   validateBody(createStaffSchema),
   async (req: AuthRequest, res) => {
     try {
-      const { firstName, lastName, email, role } = req.body;
+      const { email } = req.body;
 
       if (await checkEmailExists(email)) {
         res.status(400).json({ error: 'Email already exists' });
@@ -160,9 +160,9 @@ router.post(
   requireRole(['SUPER_ADMIN']),
   otpLimiter,
   validateBody(resendCodeSchema),
-  async (req, res) => {
+  async (_req, res) => {
     try {
-      const { email } = req.body;
+      const { email } = _req.body;
 
       const code = generateOTP();
       await createEmailVerification(email, code);
