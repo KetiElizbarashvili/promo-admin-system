@@ -100,9 +100,19 @@ export function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
-            <p>Default credentials:</p>
-            <p className="font-mono text-xs mt-1">admin / admin123</p>
+          <div className="mt-6 text-center">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm font-semibold text-blue-900 mb-2">Login Credentials</p>
+              <div className="space-y-1">
+                <p className="text-sm text-blue-800">
+                  <span className="font-medium">Username:</span> <span className="font-mono font-bold">admin</span>
+                </p>
+                <p className="text-sm text-blue-800">
+                  <span className="font-medium">Password:</span> <span className="font-mono font-bold">admin123</span>
+                </p>
+              </div>
+              <p className="text-xs text-blue-600 mt-2">✓ Updated credentials</p>
+            </div>
           </div>
         </div>
       </div>

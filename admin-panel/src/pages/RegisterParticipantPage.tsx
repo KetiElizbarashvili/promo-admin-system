@@ -112,10 +112,10 @@ export function RegisterParticipantPage() {
   return (
     <Layout>
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Register New Participant</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Register New Participant</h1>
 
         {/* Progress Steps */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <div className="flex items-center justify-between">
             {[
               { key: 'info', label: 'Info', icon: UserCheck },
@@ -128,16 +128,16 @@ export function RegisterParticipantPage() {
               const isCompleted = ['info', 'phone', 'email'].indexOf(step) > idx;
               return (
                 <div key={s.key} className="flex items-center flex-1">
-                  <div className={`flex items-center space-x-2 ${isActive ? 'text-red-600' : isCompleted ? 'text-green-600' : 'text-gray-400'}`}>
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  <div className={`flex flex-col sm:flex-row items-center space-y-1 sm:space-y-0 sm:space-x-2 ${isActive ? 'text-red-600' : isCompleted ? 'text-green-600' : 'text-gray-400'}`}>
+                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center ${
                       isActive ? 'bg-red-100' : isCompleted ? 'bg-green-100' : 'bg-gray-100'
                     }`}>
-                      <Icon className="w-5 h-5" />
+                      <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <span className="font-medium hidden sm:block">{s.label}</span>
+                    <span className="text-xs sm:text-sm font-medium">{s.label}</span>
                   </div>
                   {idx < 3 && (
-                    <div className={`flex-1 h-1 mx-4 ${isCompleted ? 'bg-green-600' : 'bg-gray-200'}`} />
+                    <div className={`flex-1 h-0.5 sm:h-1 mx-2 sm:mx-4 ${isCompleted ? 'bg-green-600' : 'bg-gray-200'}`} />
                   )}
                 </div>
               );
@@ -148,8 +148,8 @@ export function RegisterParticipantPage() {
         <div className="card">
           {/* Step 1: Participant Info */}
           {step === 'info' && (
-            <form onSubmit={handleStartRegistration} className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">Participant Information</h2>
+            <form onSubmit={handleStartRegistration} className="space-y-4 sm:space-y-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Participant Information</h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -216,9 +216,9 @@ export function RegisterParticipantPage() {
 
           {/* Step 2: Phone Verification */}
           {step === 'phone' && (
-            <form onSubmit={handleVerifyPhone} className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">Phone Verification</h2>
-              <p className="text-gray-600">Enter the 6-digit code sent to {formData.phone}</p>
+            <form onSubmit={handleVerifyPhone} className="space-y-4 sm:space-y-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Phone Verification</h2>
+              <p className="text-sm sm:text-base text-gray-600">Enter the 6-digit code sent to {formData.phone}</p>
 
               <div>
                 <label className="label">Verification Code</label>
@@ -226,22 +226,22 @@ export function RegisterParticipantPage() {
                   type="text"
                   value={phoneCode}
                   onChange={(e) => setPhoneCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="input text-center text-2xl tracking-widest"
+                  className="input text-center text-xl sm:text-2xl tracking-widest"
                   placeholder="000000"
                   maxLength={6}
                   required
                 />
               </div>
 
-              <div className="flex space-x-4">
-                <button type="submit" disabled={loading || phoneCode.length !== 6} className="btn btn-primary flex-1">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <button type="submit" disabled={loading || phoneCode.length !== 6} className="btn btn-primary flex-1 text-sm sm:text-base">
                   {loading ? 'Verifying...' : 'Verify Phone'}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleResendOTP('phone')}
                   disabled={loading || resendCooldown > 0}
-                  className="btn btn-secondary"
+                  className="btn btn-secondary text-sm sm:text-base"
                 >
                   {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Resend Code'}
                 </button>
@@ -251,9 +251,9 @@ export function RegisterParticipantPage() {
 
           {/* Step 3: Email Verification */}
           {step === 'email' && (
-            <form onSubmit={handleVerifyEmail} className="space-y-6">
-              <h2 className="text-xl font-semibold text-gray-900">Email Verification</h2>
-              <p className="text-gray-600">Enter the 6-digit code sent to {formData.email}</p>
+            <form onSubmit={handleVerifyEmail} className="space-y-4 sm:space-y-6">
+              <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Email Verification</h2>
+              <p className="text-sm sm:text-base text-gray-600">Enter the 6-digit code sent to {formData.email}</p>
 
               <div>
                 <label className="label">Verification Code</label>
@@ -261,22 +261,22 @@ export function RegisterParticipantPage() {
                   type="text"
                   value={emailCode}
                   onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  className="input text-center text-2xl tracking-widest"
+                  className="input text-center text-xl sm:text-2xl tracking-widest"
                   placeholder="000000"
                   maxLength={6}
                   required
                 />
               </div>
 
-              <div className="flex space-x-4">
-                <button type="submit" disabled={loading || emailCode.length !== 6} className="btn btn-primary flex-1">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <button type="submit" disabled={loading || emailCode.length !== 6} className="btn btn-primary flex-1 text-sm sm:text-base">
                   {loading ? 'Completing...' : 'Complete Registration'}
                 </button>
                 <button
                   type="button"
                   onClick={() => handleResendOTP('email')}
                   disabled={loading || resendCooldown > 0}
-                  className="btn btn-secondary"
+                  className="btn btn-secondary text-sm sm:text-base"
                 >
                   {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Resend Code'}
                 </button>
@@ -286,32 +286,32 @@ export function RegisterParticipantPage() {
 
           {/* Step 4: Complete */}
           {step === 'complete' && registeredParticipant && (
-            <div className="text-center space-y-6">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle className="w-10 h-10 text-green-600" />
+            <div className="text-center space-y-4 sm:space-y-6">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-green-600" />
               </div>
               
-              <h2 className="text-2xl font-bold text-gray-900">Registration Complete!</h2>
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Registration Complete!</h2>
               
-              <div className="bg-gray-50 rounded-lg p-6 space-y-4">
+              <div className="bg-gray-50 rounded-lg p-4 sm:p-6 space-y-3 sm:space-y-4">
                 <div>
-                  <p className="text-sm text-gray-600">Participant Name</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="text-xs sm:text-sm text-gray-600">Participant Name</p>
+                  <p className="text-base sm:text-lg font-semibold text-gray-900">
                     {registeredParticipant.firstName} {registeredParticipant.lastName}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Unique ID</p>
-                  <p className="text-3xl font-bold text-red-600 tracking-wider">
+                  <p className="text-xs sm:text-sm text-gray-600">Unique ID</p>
+                  <p className="text-2xl sm:text-3xl font-bold text-red-600 tracking-wider break-all">
                     {registeredParticipant.uniqueId}
                   </p>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-xs sm:text-sm text-gray-600">
                   Unique ID has been sent to phone and email
                 </p>
               </div>
 
-              <button onClick={handleReset} className="btn btn-primary">
+              <button onClick={handleReset} className="btn btn-primary text-sm sm:text-base">
                 Register Another Participant
               </button>
             </div>
