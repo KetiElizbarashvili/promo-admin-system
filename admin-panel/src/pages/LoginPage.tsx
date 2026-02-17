@@ -19,7 +19,8 @@ export function LoginPage() {
 
     try {
       await login(username, password);
-      navigate('/');
+      // Use window.location to force full reload after login
+      window.location.href = '/';
     } catch (err: any) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');
     } finally {
