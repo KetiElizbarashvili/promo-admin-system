@@ -1,6 +1,7 @@
 import { Layout } from '../components/layout/Layout';
 import { Users, UserPlus, Trophy, Gift } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import kitkatImage from '../assets/kitkat.svg';
 
 export function DashboardPage() {
   const cards = [
@@ -37,7 +38,13 @@ export function DashboardPage() {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard</h1>
+        <div className="mb-8 flex items-center space-x-4">
+          <img src={kitkatImage} alt="KitKat" className="h-12 w-12 rounded-lg object-cover shadow-sm" />
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+            <p className="text-gray-600">Welcome to the KitKat Promo Admin System</p>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {cards.map((card) => {

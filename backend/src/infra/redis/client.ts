@@ -1,12 +1,19 @@
 import { createClient } from 'redis';
 import { env } from '../../config/env';
 
-export const redisClient = createClient({
-  socket: {
-    host: env.REDIS_HOST,
-    port: env.REDIS_PORT,
-  },
-});
+// Support both connection string (Render/Heroku) and individual params (local dev)
+export const redisClient = createClient(
+  env.REDIS_URL
+    ? {
+        url: env.REDIS_URL,
+      }
+    : {
+        socket: {
+          host: env.REDIS_HOST,
+          port: env.REDIS_PORT,
+        },
+      }
+);
 
 redisClient.on('error', (err) => console.error('Redis Client Error', err));
 redisClient.on('connect', () => console.log('Redis Client Connected'));

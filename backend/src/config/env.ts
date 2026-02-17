@@ -7,25 +7,29 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().transform(Number).default('3000'),
   
-  DB_HOST: z.string(),
-  DB_PORT: z.string().transform(Number),
-  DB_NAME: z.string(),
-  DB_USER: z.string(),
-  DB_PASSWORD: z.string(),
+  // Database - supports both connection string and individual params
+  DATABASE_URL: z.string().optional(),
+  DB_HOST: z.string().optional(),
+  DB_PORT: z.string().transform(Number).optional(),
+  DB_NAME: z.string().optional(),
+  DB_USER: z.string().optional(),
+  DB_PASSWORD: z.string().optional(),
   
-  REDIS_HOST: z.string(),
-  REDIS_PORT: z.string().transform(Number),
+  // Redis - supports both connection string and individual params
+  REDIS_URL: z.string().optional(),
+  REDIS_HOST: z.string().optional(),
+  REDIS_PORT: z.string().transform(Number).optional(),
   
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRES_IN: z.string().default('8h'),
   
-  SMTP_HOST: z.string(),
-  SMTP_PORT: z.string().transform(Number),
-  SMTP_USER: z.string(),
-  SMTP_PASSWORD: z.string(),
-  SMTP_FROM: z.string().email(),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.string().transform(Number).optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASSWORD: z.string().optional(),
+  SMTP_FROM: z.string().email().optional(),
   
-  SMS_PROVIDER: z.string(),
+  SMS_PROVIDER: z.string().optional(),
   TWILIO_ACCOUNT_SID: z.string().optional(),
   TWILIO_AUTH_TOKEN: z.string().optional(),
   TWILIO_PHONE_NUMBER: z.string().optional(),

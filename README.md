@@ -2,7 +2,7 @@
 
 Admin panel for KitKat promotional campaign with participant management, points system, and prize redemption.
 
-## 🚀 Quick Start (5 minutes)
+## Quick Start (5 minutes)
 
 ### Backend Setup
 
@@ -53,9 +53,9 @@ Server runs on `http://localhost:3000`
 - Username: `superadmin`
 - Password: `Admin@123`
 
-⚠️ **IMPORTANT:** Change password immediately in production!
+**IMPORTANT:** Change password immediately in production!
 
-## 📖 Documentation
+## Documentation
 
 - **[API.md](API.md)** - Complete API reference with examples
 - **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development guide & troubleshooting  
@@ -64,7 +64,7 @@ Server runs on `http://localhost:3000`
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -166,27 +166,27 @@ npm run migrate:status # Check migration status
 
 ---
 
-## 📊 Project Status
+## Project Status
 
-**Backend**: ✅ **100% Complete** (28 API endpoints, 22 TS files, 2 migrations)
-**Frontend**: ✅ **100% Complete** (8 pages, full admin panel)
+**Backend**: **100% Complete** (28 API endpoints, 22 TS files, 2 migrations)
+**Frontend**: **100% Complete** (8 pages, full admin panel)
 
 **Completed:**
-- ✅ Authentication system
-- ✅ Staff management with email verification  
-- ✅ Participant registration with dual OTP
-- ✅ Points management (Total + Active)
-- ✅ Prize CRUD & redemption
-- ✅ Leaderboard (public + admin)
-- ✅ Activity logs
-- ✅ Security & rate limiting
-- ✅ **React Admin Panel (NEW)**
+- Authentication system
+- Staff management with email verification
+- Participant registration with dual OTP
+- Points management (Total + Active)
+- Prize CRUD & redemption
+- Leaderboard (public + admin)
+- Activity logs
+- Security & rate limiting
+- **React Admin Panel (NEW)**
 
 **Ready for Production!**
 
 ---
 
-## 🎯 Key Features Detail
+## Key Features Detail
 
 ### Two-Point System
 - **Total Points**: Never decrease, used for leaderboard ranking
@@ -211,7 +211,7 @@ npm run migrate:status # Check migration status
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 See `backend/migrations/001_initial_schema.sql` for complete schema.
 
@@ -223,7 +223,7 @@ See `backend/migrations/001_initial_schema.sql` for complete schema.
 
 ---
 
-## 🔒 Security Features
+## Security Features
 
 - Password hashing (bcrypt)
 - JWT authentication

@@ -4,14 +4,14 @@ Modern React admin panel for managing the KitKat promotional campaign.
 
 ## Features
 
-✅ **Authentication** - Secure staff login with JWT
-✅ **Dashboard** - Quick access to all features
-✅ **Participant Registration** - Multi-step wizard with OTP verification
-✅ **Participant Management** - Search, add points, lock/unlock
-✅ **Prize Management** - CRUD operations and redemptions
-✅ **Leaderboard** - Real-time rankings
-✅ **Staff Management** - Create and manage staff (Super Admin)
-✅ **Activity Logs** - Complete audit trail (Super Admin)
+- **Authentication** - Secure staff login with JWT
+- **Dashboard** - Quick access to all features
+- **Participant Registration** - Multi-step wizard with OTP verification
+- **Participant Management** - Search, add points, lock/unlock
+- **Prize Management** - CRUD operations and redemptions
+- **Leaderboard** - Real-time rankings
+- **Staff Management** - Create and manage staff (Super Admin)
+- **Activity Logs** - Complete audit trail (Super Admin)
 
 ## Tech Stack
 

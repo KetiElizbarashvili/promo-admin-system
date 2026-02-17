@@ -54,13 +54,13 @@ app.use((req, res) => {
 async function start() {
   try {
     await connectRedis();
-    console.log('✓ Redis connected');
+    console.log('Redis connected');
     
     await pool.query('SELECT 1');
-    console.log('✓ Database connected');
+    console.log('Database connected');
     
     app.listen(env.PORT, () => {
-      console.log(`✓ Server running on port ${env.PORT}`);
+      console.log(`Server running on port ${env.PORT}`);
       console.log(`  Environment: ${env.NODE_ENV}`);
       console.log(`  Health check: http://localhost:${env.PORT}/health`);
     });
