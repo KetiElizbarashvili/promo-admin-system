@@ -19,8 +19,11 @@ export function LoginPage() {
       await login(username, password);
       // Use window.location to force full reload after login
       window.location.href = '/';
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed. Please try again.');
+    } catch (err) {
+      const message = err instanceof Error 
+        ? err.message 
+        : (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Login failed. Please try again.';
+      setError(message);
     } finally {
       setLoading(false);
     }
