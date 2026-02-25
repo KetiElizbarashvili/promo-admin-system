@@ -1,10 +1,11 @@
-import twilio from 'twilio';
 import { env } from '../../config/env';
 
 function getTwilioClient() {
   if (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN) {
     throw new Error('TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN must be set');
   }
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const twilio = require('twilio');
   return twilio(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN);
 }
 
