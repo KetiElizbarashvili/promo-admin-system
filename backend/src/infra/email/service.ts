@@ -12,8 +12,8 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
-  if (process.env.NODE_ENV === 'development') {
-    process.stdout.write(JSON.stringify({ level: 'info', event: 'email_dev_mock', to, subject }) + '\n');
+  if (process.env.NODE_ENV === 'development' || process.env.TEST_MODE === 'true') {
+    process.stdout.write(JSON.stringify({ level: 'info', event: 'email_mock', to, subject }) + '\n');
     return;
   }
   try {

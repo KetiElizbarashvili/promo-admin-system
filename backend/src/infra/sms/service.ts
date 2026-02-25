@@ -10,8 +10,8 @@ function getTwilioClient() {
 }
 
 export async function sendSMS(phone: string, message: string): Promise<void> {
-  if (process.env.NODE_ENV === 'development') {
-    process.stdout.write(JSON.stringify({ level: 'info', event: 'sms_dev_mock', to: phone, body: message }) + '\n');
+  if (process.env.NODE_ENV === 'development' || process.env.TEST_MODE === 'true') {
+    process.stdout.write(JSON.stringify({ level: 'info', event: 'sms_mock', to: phone, body: message }) + '\n');
     return;
   }
 
