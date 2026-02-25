@@ -47,12 +47,11 @@ export function CountdownPage() {
 
   return (
     <div style={styles.root}>
-      {/* ── LOGOS ── add your actual logo images here */}
+      {/* ── LOGOS ── */}
       <div style={styles.logoRow}>
-        {/* Replace these placeholders with <img> tags once you have the assets */}
-        <div style={styles.logoPlaceholder}>F1 Logo</div>
+        <img src="/formula.png" alt="Formula 1" style={styles.logoF1} />
         <div style={styles.divider} />
-        <div style={styles.logoPlaceholder}>KitKat Logo</div>
+        <img src="/kitkat.png" alt="KitKat" style={styles.logoKitkat} />
       </div>
 
       {/* ── PARTNER LINE ── */}
@@ -100,19 +99,23 @@ const styles: Record<string, React.CSSProperties> = {
   logoRow: {
     display: 'flex',
     alignItems: 'center',
-    gap: '24px',
+    gap: '28px',
     marginBottom: '8px',
   },
-  logoPlaceholder: {
-    fontSize: '20px',
-    fontWeight: 700,
-    letterSpacing: '0.5px',
-    opacity: 0.9,
+  logoF1: {
+    height: '56px',
+    width: 'auto',
+    objectFit: 'contain' as const,
+  },
+  logoKitkat: {
+    height: '52px',
+    width: 'auto',
+    objectFit: 'contain' as const,
   },
   divider: {
     width: '1px',
-    height: '48px',
-    backgroundColor: 'rgba(255,255,255,0.6)',
+    height: '52px',
+    backgroundColor: 'rgba(255,255,255,0.5)',
   },
 
   // Text
