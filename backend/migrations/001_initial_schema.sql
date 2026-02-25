@@ -23,7 +23,8 @@ CREATE TABLE staff_email_verification (
   expires_at TIMESTAMP NOT NULL,
   attempts INT NOT NULL DEFAULT 0,
   verified BOOLEAN NOT NULL DEFAULT FALSE,
-  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_staff_verification_email ON staff_email_verification(staff_email);
