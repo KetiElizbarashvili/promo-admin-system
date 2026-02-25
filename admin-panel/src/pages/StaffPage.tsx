@@ -209,6 +209,12 @@ export function StaffPage() {
               <form onSubmit={handleVerifyEmail} className="space-y-4">
                 <p className="text-gray-600">Enter the verification code sent to {formData.email}</p>
 
+                {import.meta.env.VITE_TEST_MODE === 'true' && (
+                  <div className="bg-yellow-50 border border-yellow-300 rounded-lg px-4 py-2 text-sm text-yellow-800">
+                    Test mode: use code <span className="font-bold tracking-widest">111111</span>
+                  </div>
+                )}
+
                 <div>
                   <label className="label">Verification Code</label>
                   <input
