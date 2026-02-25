@@ -15,10 +15,20 @@ import { getParticipantByUniqueId } from '../../domain/participant/service';
 
 const router = Router();
 
+const imageUrlField = z.string()
+  .max(500)
+  .transform((val) => {
+    if (!val) return null;
+    if (!/^https?:\/\//i.test(val)) return `https://${val}`;
+    return val;
+  })
+  .nullable()
+  .optional();
+
 const createPrizeSchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().max(1000).nullable().optional(),
-  imageUrl: z.string().url().nullable().optional(),
+  imageUrl: imageUrlField,
   costPoints: z.number().int().min(1),
   stockQty: z.number().int().min(0).nullable().optional(),
 });
@@ -26,7 +36,7 @@ const createPrizeSchema = z.object({
 const updatePrizeSchema = z.object({
   name: z.string().min(1).max(255).optional(),
   description: z.string().max(1000).nullable().optional(),
-  imageUrl: z.string().url().nullable().optional(),
+  imageUrl: imageUrlField,
   costPoints: z.number().int().min(1).optional(),
   stockQty: z.number().int().min(0).nullable().optional(),
   status: z.enum(['ACTIVE', 'INACTIVE']).optional(),

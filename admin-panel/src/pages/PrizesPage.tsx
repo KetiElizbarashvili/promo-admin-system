@@ -311,15 +311,22 @@ export function PrizesPage() {
 
               return (
                 <div key={prize.id} className="card hover:shadow-lg transition-shadow">
-                  {prize.imageUrl && (
+                  {prize.imageUrl ? (
                     <img
                       src={prize.imageUrl}
                       alt={prize.name}
-                      className="w-full h-48 object-cover rounded-lg mb-4"
+                      className="w-full h-48 object-cover rounded-lg mb-4 bg-gray-100"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
+                        const el = e.target as HTMLImageElement;
+                        el.style.display = 'none';
+                        el.nextElementSibling?.classList.remove('hidden');
                       }}
                     />
+                  ) : null}
+                  {prize.imageUrl && (
+                    <div className="hidden w-full h-48 bg-gray-100 rounded-lg mb-4 flex items-center justify-center text-gray-400 text-sm">
+                      Image failed to load
+                    </div>
                   )}
                   
                   <div className="flex items-start justify-between mb-2">
