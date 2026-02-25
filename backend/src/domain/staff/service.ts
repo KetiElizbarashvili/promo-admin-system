@@ -2,6 +2,7 @@ import { pool, withTransaction } from '../../config/database';
 import jwt from 'jsonwebtoken';
 import { env } from '../../config/env';
 import { hashPassword, verifyPassword } from '../shared/crypto';
+import { revokeUserTokens } from '../../infra/redis/client';
 
 export interface StaffUser {
   id: number;
@@ -160,6 +161,48 @@ export async function resetStaffPassword(
        VALUES ($1, $2, $3)`,
       ['RESET_PASSWORD', resetBy, `Reset password for staff ID: ${staffId}`]
     );
+  });
+
+  // Invalidate all active sessions for the staff member whose password was reset
+  await revokeUserTokens(staffId);
+}
+
+export async function setStaffStatus(
+  staffId: number,
+  status: 'ACTIVE' | 'DISABLED',
+  changedBy: number
+): Promise<StaffUser | null> {
+  return withTransaction(async (client) => {
+    const result = await client.query(
+      `UPDATE staff_users SET status = $1, updated_at = NOW()
+       WHERE id = $2
+       RETURNING id, first_name, last_name, email, username, role, status, created_at`,
+      [status, staffId]
+    );
+
+    if (result.rows.length === 0) return null;
+
+    await client.query(
+      `INSERT INTO transaction_log (type, staff_user_id, note)
+       VALUES ($1, $2, $3)`,
+      [
+        status === 'DISABLED' ? 'STAFF_DEACTIVATE' : 'STAFF_ACTIVATE',
+        changedBy,
+        `${status === 'DISABLED' ? 'Deactivated' : 'Activated'} staff ID: ${staffId}`,
+      ]
+    );
+
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      firstName: row.first_name,
+      lastName: row.last_name,
+      email: row.email,
+      username: row.username,
+      role: row.role,
+      status: row.status,
+      createdAt: row.created_at,
+    };
   });
 }
 

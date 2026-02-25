@@ -6,6 +6,7 @@ import { otpLimiter, otpVerifyLimiter } from '../../middleware/rateLimiter';
 import {
   createParticipant,
   getParticipantByUniqueId,
+  listParticipants,
   searchParticipants,
   addPoints,
   lockParticipant,
@@ -99,6 +100,7 @@ router.post(
         nextStep: 'verify-phone',
       });
     } catch (error) {
+      process.stdout.write(JSON.stringify({ level: 'error', event: 'register_start_failed', error: error instanceof Error ? error.message : String(error) }) + '\n');
       res.status(500).json({ error: 'Failed to start registration' });
     }
   }
@@ -222,6 +224,20 @@ router.post(
       });
     } catch (error) {
       res.status(500).json({ error: 'Failed to complete registration' });
+    }
+  }
+);
+
+router.get(
+  '/',
+  authenticateToken,
+  requireRole(['SUPER_ADMIN', 'STAFF']),
+  async (_req, res) => {
+    try {
+      const participants = await listParticipants();
+      res.json({ participants });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch participants' });
     }
   }
 );

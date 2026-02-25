@@ -10,7 +10,6 @@ export interface User {
 }
 
 export interface LoginResponse {
-  token: string;
   user: User;
 }
 
@@ -31,6 +30,7 @@ export interface Participant {
 export interface Prize {
   id: number;
   name: string;
+  description: string | null;
   imageUrl: string | null;
   costPoints: number;
   stockQty: number | null;

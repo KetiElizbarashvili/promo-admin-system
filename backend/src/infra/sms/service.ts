@@ -1,20 +1,35 @@
+import twilio from 'twilio';
 import { env } from '../../config/env';
 
-// Placeholder for SMS service - integrate with your provider (Twilio, AWS SNS, etc.)
+function getTwilioClient() {
+  if (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN) {
+    throw new Error('TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN must be set');
+  }
+  return twilio(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN);
+}
+
 export async function sendSMS(phone: string, message: string): Promise<void> {
+  if (process.env.NODE_ENV === 'development') {
+    process.stdout.write(JSON.stringify({ level: 'info', event: 'sms_dev_mock', to: phone, body: message }) + '\n');
+    return;
+  }
+
   if (env.SMS_PROVIDER === 'twilio') {
-    // Twilio integration example:
-    // const twilio = require('twilio');
-    // const client = twilio(env.TWILIO_ACCOUNT_SID, env.TWILIO_AUTH_TOKEN);
-    // await client.messages.create({
-    //   body: message,
-    //   from: env.TWILIO_PHONE_NUMBER,
-    //   to: phone,
-    // });
-    console.log(`SMS to ${phone}: ${message}`);
-    // TODO: Implement actual SMS provider
+    if (!env.TWILIO_PHONE_NUMBER) {
+      throw new Error('TWILIO_PHONE_NUMBER must be set');
+    }
+    const client = getTwilioClient();
+    const toNumber = phone.startsWith('+') ? phone : `+${phone}`;
+    const result = await client.messages.create({
+      body: message,
+      from: env.TWILIO_PHONE_NUMBER,
+      to: toNumber,
+    });
+    process.stdout.write(JSON.stringify({ level: 'info', event: 'sms_sent', sid: result.sid, to: phone }) + '\n');
   } else {
-    console.log(`[SMS Mock] to ${phone}: ${message}`);
+    void phone;
+    void message;
+    process.stdout.write(JSON.stringify({ level: 'info', event: 'sms_mock_sent' }) + '\n');
   }
 }
 

@@ -105,6 +105,30 @@ export async function getParticipantByUniqueId(uniqueId: string): Promise<Partic
   };
 }
 
+export async function listParticipants(limit = 100, offset = 0): Promise<Participant[]> {
+  const result = await pool.query(
+    `SELECT id, unique_id, first_name, last_name, gov_id, phone, email,
+            total_points, active_points, status, created_at
+     FROM participants
+     ORDER BY created_at DESC
+     LIMIT $1 OFFSET $2`,
+    [limit, offset]
+  );
+  return result.rows.map(row => ({
+    id: row.id,
+    uniqueId: row.unique_id,
+    firstName: row.first_name,
+    lastName: row.last_name,
+    govId: row.gov_id,
+    phone: row.phone,
+    email: row.email,
+    totalPoints: row.total_points,
+    activePoints: row.active_points,
+    status: row.status,
+    createdAt: row.created_at,
+  }));
+}
+
 export async function searchParticipants(query: string): Promise<Participant[]> {
   const result = await pool.query(
     `SELECT id, unique_id, first_name, last_name, gov_id, phone, email,

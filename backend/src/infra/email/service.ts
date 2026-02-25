@@ -12,16 +12,15 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
+  if (process.env.NODE_ENV === 'development') {
+    process.stdout.write(JSON.stringify({ level: 'info', event: 'email_dev_mock', to, subject }) + '\n');
+    return;
+  }
   try {
-    await transporter.sendMail({
-      from: env.SMTP_FROM,
-      to,
-      subject,
-      html,
-    });
-    console.log(`Email sent to ${to}`);
+    await transporter.sendMail({ from: env.SMTP_FROM, to, subject, html });
+    process.stdout.write(JSON.stringify({ level: 'info', event: 'email_sent' }) + '\n');
   } catch (error) {
-    console.error('Email send failed:', error);
+    process.stderr.write(JSON.stringify({ level: 'error', event: 'email_failed' }) + '\n');
     throw new Error('Failed to send email');
   }
 }

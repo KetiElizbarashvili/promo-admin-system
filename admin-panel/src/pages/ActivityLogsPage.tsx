@@ -18,13 +18,14 @@ export function ActivityLogsPage() {
     loadLogs();
   }, []);
 
-  const loadLogs = async () => {
+  const loadLogs = async (overrideFilters?: typeof filters) => {
+    const active = overrideFilters ?? filters;
     setLoading(true);
     try {
       const data = await adminApi.getLogs({
-        type: filters.type || undefined,
-        startDate: filters.startDate || undefined,
-        endDate: filters.endDate || undefined,
+        type: active.type || undefined,
+        startDate: active.startDate || undefined,
+        endDate: active.endDate || undefined,
         limit: 100,
       });
       setLogs(data);
@@ -41,8 +42,9 @@ export function ActivityLogsPage() {
   };
 
   const handleClearFilters = () => {
-    setFilters({ type: '', startDate: '', endDate: '' });
-    setTimeout(() => loadLogs(), 0);
+    const cleared = { type: '', startDate: '', endDate: '' };
+    setFilters(cleared);
+    loadLogs(cleared);
   };
 
   const getTypeColor = (type: string) => {
@@ -78,7 +80,7 @@ export function ActivityLogsPage() {
               <Filter className="w-5 h-5" />
               <span>Filters</span>
             </button>
-            <button onClick={loadLogs} className="btn btn-secondary text-sm">
+            <button onClick={() => loadLogs()} className="btn btn-secondary text-sm">
               Refresh
             </button>
           </div>

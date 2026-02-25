@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: 'Formula1Display';
+  src: url('/Formula1-Display-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   font-family: 'Poppins', system-ui, -apple-system, sans-serif;
   line-height: 1.5;

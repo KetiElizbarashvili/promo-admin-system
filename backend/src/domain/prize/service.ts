@@ -3,6 +3,7 @@ import { pool, withTransaction } from '../../config/database';
 export interface Prize {
   id: number;
   name: string;
+  description: string | null;
   imageUrl: string | null;
   costPoints: number;
   stockQty: number | null;
@@ -10,94 +11,68 @@ export interface Prize {
   createdAt: Date;
 }
 
+function rowToPrize(row: Record<string, unknown>): Prize {
+  return {
+    id: row.id as number,
+    name: row.name as string,
+    description: (row.description as string | null) ?? null,
+    imageUrl: (row.image_url as string | null) ?? null,
+    costPoints: row.cost_points as number,
+    stockQty: (row.stock_qty as number | null) ?? null,
+    status: row.status as 'ACTIVE' | 'INACTIVE',
+    createdAt: row.created_at as Date,
+  };
+}
+
 export async function getAllPrizes(): Promise<Prize[]> {
   const result = await pool.query(
-    `SELECT id, name, image_url, cost_points, stock_qty, status, created_at
+    `SELECT id, name, description, image_url, cost_points, stock_qty, status, created_at
      FROM prizes ORDER BY created_at DESC`
   );
-
-  return result.rows.map(row => ({
-    id: row.id,
-    name: row.name,
-    imageUrl: row.image_url,
-    costPoints: row.cost_points,
-    stockQty: row.stock_qty,
-    status: row.status,
-    createdAt: row.created_at,
-  }));
+  return result.rows.map(rowToPrize);
 }
 
 export async function getActivePrizes(): Promise<Prize[]> {
   const result = await pool.query(
-    `SELECT id, name, image_url, cost_points, stock_qty, status, created_at
+    `SELECT id, name, description, image_url, cost_points, stock_qty, status, created_at
      FROM prizes
      WHERE status = 'ACTIVE' AND (stock_qty IS NULL OR stock_qty > 0)
      ORDER BY cost_points ASC`
   );
-
-  return result.rows.map(row => ({
-    id: row.id,
-    name: row.name,
-    imageUrl: row.image_url,
-    costPoints: row.cost_points,
-    stockQty: row.stock_qty,
-    status: row.status,
-    createdAt: row.created_at,
-  }));
+  return result.rows.map(rowToPrize);
 }
 
 export async function getPrizeById(id: number): Promise<Prize | null> {
   const result = await pool.query(
-    `SELECT id, name, image_url, cost_points, stock_qty, status, created_at
+    `SELECT id, name, description, image_url, cost_points, stock_qty, status, created_at
      FROM prizes WHERE id = $1`,
     [id]
   );
-
-  if (result.rows.length === 0) {
-    return null;
-  }
-
-  const row = result.rows[0];
-  return {
-    id: row.id,
-    name: row.name,
-    imageUrl: row.image_url,
-    costPoints: row.cost_points,
-    stockQty: row.stock_qty,
-    status: row.status,
-    createdAt: row.created_at,
-  };
+  if (result.rows.length === 0) return null;
+  return rowToPrize(result.rows[0]);
 }
 
 export async function createPrize(
   name: string,
+  description: string | null,
   imageUrl: string | null,
   costPoints: number,
   stockQty: number | null
 ): Promise<Prize> {
   const result = await pool.query(
-    `INSERT INTO prizes (name, image_url, cost_points, stock_qty)
-     VALUES ($1, $2, $3, $4)
-     RETURNING id, name, image_url, cost_points, stock_qty, status, created_at`,
-    [name, imageUrl, costPoints, stockQty]
+    `INSERT INTO prizes (name, description, image_url, cost_points, stock_qty)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING id, name, description, image_url, cost_points, stock_qty, status, created_at`,
+    [name, description, imageUrl, costPoints, stockQty]
   );
-
-  const row = result.rows[0];
-  return {
-    id: row.id,
-    name: row.name,
-    imageUrl: row.image_url,
-    costPoints: row.cost_points,
-    stockQty: row.stock_qty,
-    status: row.status,
-    createdAt: row.created_at,
-  };
+  return rowToPrize(result.rows[0]);
 }
 
 export async function updatePrize(
   id: number,
   data: {
     name?: string;
+    description?: string | null;
     imageUrl?: string | null;
     costPoints?: number;
     stockQty?: number | null;
@@ -105,12 +80,16 @@ export async function updatePrize(
   }
 ): Promise<Prize | null> {
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: unknown[] = [];
   let paramCount = 1;
 
   if (data.name !== undefined) {
     fields.push(`name = $${paramCount++}`);
     values.push(data.name);
+  }
+  if (data.description !== undefined) {
+    fields.push(`description = $${paramCount++}`);
+    values.push(data.description);
   }
   if (data.imageUrl !== undefined) {
     fields.push(`image_url = $${paramCount++}`);
@@ -139,24 +118,12 @@ export async function updatePrize(
   const result = await pool.query(
     `UPDATE prizes SET ${fields.join(', ')}
      WHERE id = $${paramCount}
-     RETURNING id, name, image_url, cost_points, stock_qty, status, created_at`,
+     RETURNING id, name, description, image_url, cost_points, stock_qty, status, created_at`,
     values
   );
 
-  if (result.rows.length === 0) {
-    return null;
-  }
-
-  const row = result.rows[0];
-  return {
-    id: row.id,
-    name: row.name,
-    imageUrl: row.image_url,
-    costPoints: row.cost_points,
-    stockQty: row.stock_qty,
-    status: row.status,
-    createdAt: row.created_at,
-  };
+  if (result.rows.length === 0) return null;
+  return rowToPrize(result.rows[0]);
 }
 
 export async function deletePrize(id: number): Promise<boolean> {

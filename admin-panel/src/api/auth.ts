@@ -12,17 +12,17 @@ export const authApi = {
   },
 
   getCurrentUser: (): User | null => {
-    const userStr = localStorage.getItem('user');
+    const userStr = sessionStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   },
 
-  setAuth: (token: string, user: User): void => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
+  setAuth: (user: User): void => {
+    // JWT is stored in an HttpOnly cookie set by the server — never accessible to JS.
+    // Only the non-sensitive user object is kept in sessionStorage for UI state.
+    sessionStorage.setItem('user', JSON.stringify(user));
   },
 
   clearAuth: (): void => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('user');
   },
 };

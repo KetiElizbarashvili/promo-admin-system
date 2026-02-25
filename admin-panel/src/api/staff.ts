@@ -40,4 +40,9 @@ export const staffApi = {
   resetPassword: async (staffId: number): Promise<void> => {
     await api.post('/staff/reset-password', { staffId });
   },
+
+  setStatus: async (staffId: number, status: 'ACTIVE' | 'DISABLED'): Promise<StaffMember> => {
+    const response = await api.patch(`/staff/${staffId}/status`, { status });
+    return response.data.staff;
+  },
 };

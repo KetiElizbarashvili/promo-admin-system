@@ -45,6 +45,11 @@ export const participantApi = {
     return response.data;
   },
 
+  list: async (): Promise<Participant[]> => {
+    const response = await api.get('/participants');
+    return response.data.participants;
+  },
+
   search: async (query: string): Promise<Participant[]> => {
     const response = await api.get('/participants/search', {
       params: { query },

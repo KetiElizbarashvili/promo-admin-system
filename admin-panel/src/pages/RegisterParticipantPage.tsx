@@ -19,6 +19,20 @@ export function RegisterParticipantPage() {
     email: '',
   });
 
+  const [fieldErrors, setFieldErrors] = useState<{ govId?: string; phone?: string }>({});
+
+  const validateInfo = (): boolean => {
+    const errors: { govId?: string; phone?: string } = {};
+    if (!/^\d{11}$/.test(formData.govId)) {
+      errors.govId = 'Government ID must be exactly 11 digits';
+    }
+    if (!/^[0-9]{9,15}$/.test(formData.phone)) {
+      errors.phone = 'Phone must be 9–15 digits, no spaces or symbols (e.g. 995555123456)';
+    }
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const [sessionId, setSessionId] = useState('');
   const [phoneCode, setPhoneCode] = useState('');
   const [emailCode, setEmailCode] = useState('');
@@ -40,6 +54,7 @@ export function RegisterParticipantPage() {
 
   const handleStartRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateInfo()) return;
     setLoading(true);
     try {
       const response = await participantApi.startRegistration(formData);
@@ -103,6 +118,7 @@ export function RegisterParticipantPage() {
   const handleReset = () => {
     setStep('info');
     setFormData({ firstName: '', lastName: '', govId: '', phone: '', email: '' });
+    setFieldErrors({});
     setSessionId('');
     setPhoneCode('');
     setEmailCode('');
@@ -179,10 +195,17 @@ export function RegisterParticipantPage() {
                 <input
                   type="text"
                   value={formData.govId}
-                  onChange={(e) => setFormData({ ...formData, govId: e.target.value })}
-                  className="input"
+                  onChange={(e) => {
+                    setFormData({ ...formData, govId: e.target.value.replace(/\D/g, '').slice(0, 11) });
+                    if (fieldErrors.govId) setFieldErrors((prev) => ({ ...prev, govId: undefined }));
+                  }}
+                  className={`input ${fieldErrors.govId ? 'border-red-500 focus:ring-red-500' : ''}`}
+                  placeholder="11-digit ID"
+                  maxLength={11}
+                  inputMode="numeric"
                   required
                 />
+                {fieldErrors.govId && <p className="mt-1 text-sm text-red-600">{fieldErrors.govId}</p>}
               </div>
 
               <div>
@@ -190,11 +213,17 @@ export function RegisterParticipantPage() {
                 <input
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="input"
+                  onChange={(e) => {
+                    setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 15) });
+                    if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }));
+                  }}
+                  className={`input ${fieldErrors.phone ? 'border-red-500 focus:ring-red-500' : ''}`}
                   placeholder="995555123456"
+                  maxLength={15}
+                  inputMode="tel"
                   required
                 />
+                {fieldErrors.phone && <p className="mt-1 text-sm text-red-600">{fieldErrors.phone}</p>}
               </div>
 
               <div>

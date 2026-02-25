@@ -1,10 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { env } from './config/env';
 import { pool } from './config/database';
 import { connectRedis } from './infra/redis/client';
 import { generalLimiter } from './middleware/rateLimiter';
+import { requestLogger } from './middleware/logger';
 
 // Import routes
 import authRoutes from './api/auth/routes';
@@ -16,18 +18,64 @@ import adminRoutes from './api/admin/routes';
 
 const app = express();
 
-// Middleware
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
+// Explicit allowlist from env (comma-separated)
+const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean);
+
+app.use(
+  helmet({
+    hsts: {
+      maxAge: 31_536_000,
+      includeSubDomains: true,
+      preload: true,
+    },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+        objectSrc: ["'none'"],
+        connectSrc: ["'self'"],
+        frameAncestors: ["'none'"],
+        baseUri: ["'self'"],
+        formAction: ["'self'"],
+      },
+    },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+    frameguard: { action: 'deny' },
+    noSniff: true,
+  })
+);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow server-to-server calls (no origin) and explicitly listed origins only
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not permitted by CORS policy`));
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 3600,
+  })
+);
+
+app.use(cookieParser(env.COOKIE_SECRET));
+app.use(express.json({ limit: '10kb' }));
 app.use(generalLimiter);
+app.use(requestLogger);
 
 // Health check
 app.get('/health', async (_req, res) => {
   try {
     await pool.query('SELECT 1');
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  } catch (error) {
+  } catch {
     res.status(503).json({ status: 'error', message: 'Database unavailable' });
   }
 });
@@ -40,9 +88,9 @@ app.use('/api/prizes', prizeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/public', publicRoutes);
 
-// Error handler
+// Error handler — never expose internal details
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Unhandled error:', err);
+  process.stderr.write(JSON.stringify({ level: 'error', message: err.message, stack: err.stack }) + '\n');
   res.status(500).json({ error: 'Internal server error' });
 });
 

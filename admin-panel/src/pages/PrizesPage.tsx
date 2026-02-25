@@ -13,12 +13,12 @@ export function PrizesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingPrize, setEditingPrize] = useState<Prize | null>(null);
   const [showRedeem, setShowRedeem] = useState(false);
-  const [selectedPrize, setSelectedPrize] = useState<Prize | null>(null);
   const { success, error: showError } = useToast();
   const { isSuperAdmin } = useAuth();
 
   const [formData, setFormData] = useState({
     name: '',
+    description: '',
     imageUrl: '',
     costPoints: '',
     stockQty: '',
@@ -28,6 +28,8 @@ export function PrizesPage() {
     uniqueId: '',
     participant: null as Participant | null,
   });
+
+  const [uniqueIdError, setUniqueIdError] = useState<string | undefined>();
 
   useEffect(() => {
     loadPrizes();
@@ -51,6 +53,7 @@ export function PrizesPage() {
     try {
       const data = {
         name: formData.name,
+        description: formData.description || null,
         imageUrl: formData.imageUrl || null,
         costPoints: parseInt(formData.costPoints),
         stockQty: formData.stockQty ? parseInt(formData.stockQty) : null,
@@ -77,6 +80,7 @@ export function PrizesPage() {
     setEditingPrize(prize);
     setFormData({
       name: prize.name,
+      description: prize.description || '',
       imageUrl: prize.imageUrl || '',
       costPoints: prize.costPoints.toString(),
       stockQty: prize.stockQty?.toString() || '',
@@ -102,11 +106,18 @@ export function PrizesPage() {
   const handleCancel = () => {
     setShowForm(false);
     setEditingPrize(null);
-    setFormData({ name: '', imageUrl: '', costPoints: '', stockQty: '' });
+    setFormData({ name: '', description: '', imageUrl: '', costPoints: '', stockQty: '' });
   };
 
   const handleSearchParticipant = async () => {
-    if (!redeemData.uniqueId.trim()) return;
+    const id = redeemData.uniqueId.trim().toUpperCase();
+    if (!id) return;
+
+    if (!/^KK-[A-Z0-9]{6}$/.test(id)) {
+      setUniqueIdError('Unique ID must be in format KK-XXXXXX (e.g. KK-AB1234)');
+      return;
+    }
+    setUniqueIdError(undefined);
 
     setLoading(true);
     try {
@@ -120,20 +131,19 @@ export function PrizesPage() {
     }
   };
 
-  const handleRedeem = async () => {
-    if (!redeemData.participant || !selectedPrize) return;
+  const handleRedeem = async (prize: Prize) => {
+    if (!redeemData.participant) return;
 
-    if (!confirm(`Redeem ${selectedPrize.name} for ${redeemData.participant.firstName} ${redeemData.participant.lastName}?`)) {
+    if (!confirm(`Redeem ${prize.name} for ${redeemData.participant.firstName} ${redeemData.participant.lastName}?`)) {
       return;
     }
 
     setLoading(true);
     try {
-      await prizeApi.redeem(redeemData.uniqueId, selectedPrize.id);
+      await prizeApi.redeem(redeemData.uniqueId, prize.id);
       success('Prize redeemed successfully!');
       loadPrizes();
       setShowRedeem(false);
-      setSelectedPrize(null);
       setRedeemData({ uniqueId: '', participant: null });
     } catch (err: any) {
       showError(err.response?.data?.error || 'Failed to redeem prize');
@@ -187,6 +197,17 @@ export function PrizesPage() {
                 />
               </div>
               <div>
+                <label className="label">Description (optional)</label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="input resize-none"
+                  rows={3}
+                  maxLength={1000}
+                  placeholder="Describe the prize..."
+                />
+              </div>
+              <div>
                 <label className="label">Image URL (optional)</label>
                 <input
                   type="url"
@@ -236,20 +257,30 @@ export function PrizesPage() {
           <div className="card mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Redeem Prize</h2>
             <div className="space-y-4">
-              <div className="flex space-x-4">
-                <input
-                  type="text"
-                  value={redeemData.uniqueId}
-                  onChange={(e) => setRedeemData({ ...redeemData, uniqueId: e.target.value })}
-                  className="input flex-1"
-                  placeholder="Enter Unique ID"
-                />
-                <button onClick={handleSearchParticipant} disabled={loading} className="btn btn-primary">
-                  Search
-                </button>
-                <button onClick={() => setShowRedeem(false)} className="btn btn-secondary">
-                  Cancel
-                </button>
+              <div className="space-y-1">
+                <div className="flex space-x-4">
+                  <input
+                    type="text"
+                    value={redeemData.uniqueId}
+                    onChange={(e) => {
+                      setRedeemData({ ...redeemData, uniqueId: e.target.value.toUpperCase() });
+                      if (uniqueIdError) setUniqueIdError(undefined);
+                    }}
+                    className={`input flex-1 ${uniqueIdError ? 'border-red-500 focus:ring-red-500' : ''}`}
+                    placeholder="KK-XXXXXX"
+                    maxLength={9}
+                  />
+                  <button onClick={handleSearchParticipant} disabled={loading} className="btn btn-primary">
+                    Search
+                  </button>
+                  <button
+                    onClick={() => { setShowRedeem(false); setUniqueIdError(undefined); setRedeemData({ uniqueId: '', participant: null }); }}
+                    className="btn btn-secondary"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                {uniqueIdError && <p className="text-sm text-red-600">{uniqueIdError}</p>}
               </div>
 
               {redeemData.participant && (
@@ -257,7 +288,8 @@ export function PrizesPage() {
                   <p className="font-semibold text-gray-900">
                     {redeemData.participant.firstName} {redeemData.participant.lastName}
                   </p>
-                  <p className="text-sm text-gray-600">Active Points: {redeemData.participant.activePoints}</p>
+                  <p className="text-sm font-mono text-gray-500">{redeemData.participant.uniqueId}</p>
+                  <p className="text-sm text-gray-600">Active Points: <span className="font-semibold text-gray-900">{redeemData.participant.activePoints}</span></p>
                 </div>
               )}
             </div>
@@ -299,6 +331,10 @@ export function PrizesPage() {
                     </span>
                   </div>
 
+                  {prize.description && (
+                    <p className="text-sm text-gray-600 mb-3 line-clamp-2">{prize.description}</p>
+                  )}
+
                   <div className="space-y-2 mb-4">
                     <p className="text-2xl font-bold text-red-600">{prize.costPoints} points</p>
                     <p className="text-sm text-gray-600">
@@ -309,10 +345,7 @@ export function PrizesPage() {
                   <div className="flex space-x-2">
                     {showRedeem && redeemData.participant && (
                       <button
-                        onClick={() => {
-                          setSelectedPrize(prize);
-                          handleRedeem();
-                        }}
+                        onClick={() => handleRedeem(prize)}
                         disabled={!canRedeem || loading}
                         className="btn btn-primary flex-1 text-sm disabled:opacity-50"
                       >

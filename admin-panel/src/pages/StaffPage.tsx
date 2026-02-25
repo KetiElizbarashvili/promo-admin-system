@@ -3,7 +3,8 @@ import { Layout } from '../components/layout/Layout';
 import { useToast } from '../hooks/useToast';
 import { staffApi } from '../api/staff';
 import type { StaffMember } from '../types';
-import { Users, Plus, Key } from 'lucide-react';
+import { Users, Plus, Key, UserX, UserCheck } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 export function StaffPage() {
   const [staff, setStaff] = useState<StaffMember[]>([]);
@@ -11,6 +12,7 @@ export function StaffPage() {
   const [showForm, setShowForm] = useState(false);
   const [step, setStep] = useState<'info' | 'verify'>('info');
   const { success, error: showError } = useToast();
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -56,8 +58,12 @@ export function StaffPage() {
     setLoading(true);
     try {
       await staffApi.verifyEmail(formData.email, verificationCode);
-      await staffApi.completeRegistration(formData);
-      success('Staff created successfully! Credentials sent to email.');
+      const result = await staffApi.completeRegistration(formData);
+      if (result.devCredentials) {
+        success(`Staff created! Username: ${result.devCredentials.username} | Password: ${result.devCredentials.password}`);
+      } else {
+        success('Staff created successfully! Credentials sent to email.');
+      }
       loadStaff();
       handleCancel();
     } catch (err: any) {
@@ -90,6 +96,26 @@ export function StaffPage() {
       success('Password reset successfully! New password sent to email.');
     } catch (err: any) {
       showError(err.response?.data?.error || 'Failed to reset password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSetStatus = async (member: StaffMember) => {
+    const isDeactivating = member.status === 'ACTIVE';
+    if (!confirm(
+      isDeactivating
+        ? `Deactivate ${member.firstName} ${member.lastName}? They will be logged out immediately and cannot log in.`
+        : `Reactivate ${member.firstName} ${member.lastName}?`
+    )) return;
+
+    setLoading(true);
+    try {
+      const updated = await staffApi.setStatus(member.id, isDeactivating ? 'DISABLED' : 'ACTIVE');
+      setStaff((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+      success(isDeactivating ? 'Staff deactivated successfully.' : 'Staff reactivated successfully.');
+    } catch (err: any) {
+      showError(err.response?.data?.error || 'Failed to update status');
     } finally {
       setLoading(false);
     }
@@ -282,14 +308,33 @@ export function StaffPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <button
-                          onClick={() => handleResetPassword(member.id)}
-                          disabled={loading}
-                          className="inline-flex items-center space-x-1 text-sm text-red-600 hover:text-red-800"
-                        >
-                          <Key className="w-4 h-4" />
-                          <span>Reset Password</span>
-                        </button>
+                        <div className="inline-flex items-center gap-4">
+                          <button
+                            onClick={() => handleResetPassword(member.id)}
+                            disabled={loading || member.status === 'DISABLED'}
+                            className="inline-flex items-center space-x-1 text-sm text-red-600 hover:text-red-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            <Key className="w-4 h-4" />
+                            <span>Reset Password</span>
+                          </button>
+                          {user?.id !== member.id && (
+                            <button
+                              onClick={() => handleSetStatus(member)}
+                              disabled={loading}
+                              className={`inline-flex items-center space-x-1 text-sm disabled:opacity-40 disabled:cursor-not-allowed ${
+                                member.status === 'ACTIVE'
+                                  ? 'text-gray-500 hover:text-gray-800'
+                                  : 'text-green-600 hover:text-green-800'
+                              }`}
+                            >
+                              {member.status === 'ACTIVE' ? (
+                                <><UserX className="w-4 h-4" /><span>Deactivate</span></>
+                              ) : (
+                                <><UserCheck className="w-4 h-4" /><span>Activate</span></>
+                              )}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

@@ -7,6 +7,7 @@ import {
   getAllStaff,
   createStaff,
   resetStaffPassword,
+  setStaffStatus,
   checkEmailExists,
   checkUsernameExists,
   getStaffById,
@@ -40,6 +41,10 @@ const resendCodeSchema = z.object({
 
 const resetPasswordSchema = z.object({
   staffId: z.number(),
+});
+
+const setStatusSchema = z.object({
+  status: z.enum(['ACTIVE', 'DISABLED']),
 });
 
 router.get('/', authenticateToken, requireRole(['SUPER_ADMIN']), async (_req, res) => {
@@ -137,6 +142,10 @@ router.post(
 
       await sendStaffCredentials(email, firstName, username, password);
 
+      if (process.env.NODE_ENV === 'development') {
+        process.stdout.write(JSON.stringify({ level: 'info', event: 'staff_created_dev', username, password }) + '\n');
+      }
+
       res.json({
         message: 'Staff created successfully. Credentials sent to email.',
         staff: {
@@ -147,6 +156,7 @@ router.post(
           username: staff.username,
           role: staff.role,
         },
+        devCredentials: process.env.NODE_ENV === 'development' ? { username, password } : undefined,
       });
     } catch (error) {
       res.status(500).json({ error: 'Failed to complete registration' });
@@ -197,6 +207,36 @@ router.post(
       res.json({ message: 'Password reset successfully. New password sent to email.' });
     } catch (error) {
       res.status(500).json({ error: 'Failed to reset password' });
+    }
+  }
+);
+
+router.patch(
+  '/:id/status',
+  authenticateToken,
+  requireRole(['SUPER_ADMIN']),
+  validateBody(setStatusSchema),
+  async (req: AuthRequest, res) => {
+    try {
+      const targetId = parseInt(req.params.id);
+
+      if (targetId === req.user!.id) {
+        res.status(400).json({ error: 'You cannot change your own status' });
+        return;
+      }
+
+      const { status } = req.body;
+
+      const updated = await setStaffStatus(targetId, status, req.user!.id);
+
+      if (!updated) {
+        res.status(404).json({ error: 'Staff not found' });
+        return;
+      }
+
+      res.json({ message: `Staff ${status === 'DISABLED' ? 'deactivated' : 'activated'} successfully`, staff: updated });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update staff status' });
     }
   }
 );

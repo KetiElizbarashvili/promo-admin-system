@@ -1,0 +1,1 @@
+ALTER TABLE prizes ADD COLUMN IF NOT EXISTS description TEXT;

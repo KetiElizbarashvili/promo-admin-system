@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Layout } from '../components/layout/Layout';
 import { useToast } from '../hooks/useToast';
 import { participantApi } from '../api/participant';
@@ -11,15 +11,31 @@ export function ParticipantsPage() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    participantApi.list().then(setParticipants).catch(() => {});
+  }, []);
   const [showAddPoints, setShowAddPoints] = useState(false);
   const [points, setPoints] = useState('');
   const [note, setNote] = useState('');
+  const [pointsError, setPointsError] = useState<string | undefined>();
   const { success, error: showError } = useToast();
   const { isSuperAdmin } = useAuth();
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    if (!query.trim()) {
+      setLoading(true);
+      try {
+        const results = await participantApi.list();
+        setParticipants(results);
+      } catch {
+        showError('Failed to load participants');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     setLoading(true);
     try {
@@ -39,6 +55,13 @@ export function ParticipantsPage() {
     e.preventDefault();
     if (!selectedParticipant) return;
 
+    const parsed = parseInt(points, 10);
+    if (!points || isNaN(parsed) || parsed < 1 || !Number.isInteger(parsed)) {
+      setPointsError('Points must be a whole number of at least 1');
+      return;
+    }
+    setPointsError(undefined);
+
     setLoading(true);
     try {
       const updated = await participantApi.addPoints(
@@ -52,6 +75,7 @@ export function ParticipantsPage() {
       setShowAddPoints(false);
       setPoints('');
       setNote('');
+      setPointsError(undefined);
     } catch (err: any) {
       showError(err.response?.data?.error || 'Failed to add points');
     } finally {
@@ -242,11 +266,17 @@ export function ParticipantsPage() {
                       <input
                         type="number"
                         value={points}
-                        onChange={(e) => setPoints(e.target.value)}
-                        className="input text-sm sm:text-base"
+                        onChange={(e) => {
+                          setPoints(e.target.value);
+                          if (pointsError) setPointsError(undefined);
+                        }}
+                        className={`input text-sm sm:text-base ${pointsError ? 'border-red-500 focus:ring-red-500' : ''}`}
                         min="1"
+                        step="1"
+                        inputMode="numeric"
                         required
                       />
+                      {pointsError && <p className="mt-1 text-sm text-red-600">{pointsError}</p>}
                     </div>
                     <div>
                       <label className="label text-sm">Note (optional)</label>
@@ -264,7 +294,7 @@ export function ParticipantsPage() {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setShowAddPoints(false)}
+                        onClick={() => { setShowAddPoints(false); setPointsError(undefined); }}
                         className="btn btn-secondary text-sm sm:text-base px-4"
                       >
                         Cancel

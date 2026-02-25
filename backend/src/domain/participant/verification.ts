@@ -5,7 +5,7 @@ import {
   incrementAttempts,
   getAttempts,
 } from '../../infra/redis/client';
-import { hashCode, verifyCode, generateOTP } from '../shared/crypto';
+import { hashCode, verifyCode, generateOTP, generateSessionId } from '../shared/crypto';
 import { sendOTPEmail } from '../../infra/email/service';
 import { sendOTPSMS } from '../../infra/sms/service';
 import { env } from '../../config/env';
@@ -21,7 +21,7 @@ export async function startVerification(
   phone: string,
   email: string
 ): Promise<string> {
-  const sessionId = `verify:${Date.now()}:${Math.random().toString(36).substring(7)}`;
+  const sessionId = `verify:${generateSessionId()}`;
   
   await setOTP(
     `session:${sessionId}`,

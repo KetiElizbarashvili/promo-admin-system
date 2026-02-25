@@ -1,12 +1,13 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { authApi } from '../api/auth';
+import api from '../api/client';
 import type { User } from '../types';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isSuperAdmin: boolean;
 }
 
@@ -17,18 +18,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = authApi.getCurrentUser();
-    setUser(storedUser);
-    setIsLoading(false);
+    const validateSession = async () => {
+      const storedUser = authApi.getCurrentUser();
+      if (!storedUser) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const { data } = await api.get<{ user: User }>('/auth/me');
+        setUser(data.user);
+        authApi.setAuth(data.user);
+      } catch {
+        authApi.clearAuth();
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    validateSession();
   }, []);
 
   const login = async (username: string, password: string) => {
-    const { token, user } = await authApi.login(username, password);
-    authApi.setAuth(token, user);
+    const { user } = await authApi.login(username, password);
+    authApi.setAuth(user);
     setUser(user);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await authApi.logout().catch(() => null);
     authApi.clearAuth();
     setUser(null);
   };

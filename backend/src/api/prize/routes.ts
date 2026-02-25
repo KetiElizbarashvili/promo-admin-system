@@ -17,6 +17,7 @@ const router = Router();
 
 const createPrizeSchema = z.object({
   name: z.string().min(1).max(255),
+  description: z.string().max(1000).nullable().optional(),
   imageUrl: z.string().url().nullable().optional(),
   costPoints: z.number().int().min(1),
   stockQty: z.number().int().min(0).nullable().optional(),
@@ -24,6 +25,7 @@ const createPrizeSchema = z.object({
 
 const updatePrizeSchema = z.object({
   name: z.string().min(1).max(255).optional(),
+  description: z.string().max(1000).nullable().optional(),
   imageUrl: z.string().url().nullable().optional(),
   costPoints: z.number().int().min(1).optional(),
   stockQty: z.number().int().min(0).nullable().optional(),
@@ -90,9 +92,9 @@ router.post(
   validateBody(createPrizeSchema),
   async (req, res) => {
     try {
-      const { name, imageUrl, costPoints, stockQty } = req.body;
+      const { name, description, imageUrl, costPoints, stockQty } = req.body;
 
-      const prize = await createPrize(name, imageUrl || null, costPoints, stockQty || null);
+      const prize = await createPrize(name, description || null, imageUrl || null, costPoints, stockQty || null);
 
       res.status(201).json({
         message: 'Prize created successfully',

@@ -25,6 +25,10 @@ services:
         generateValue: true
       - key: JWT_EXPIRES_IN
         value: 8h
+      - key: COOKIE_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        sync: false
       - key: OTP_EXPIRY_MINUTES
         value: 10
       - key: OTP_MAX_ATTEMPTS
