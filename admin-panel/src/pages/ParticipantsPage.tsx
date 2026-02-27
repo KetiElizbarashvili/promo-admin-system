@@ -19,7 +19,7 @@ export function ParticipantsPage() {
   const [points, setPoints] = useState('');
   const [note, setNote] = useState('');
   const [pointsError, setPointsError] = useState<string | undefined>();
-  const { success, error: showError } = useToast();
+  const { success, error: showError, warning } = useToast();
   const { isSuperAdmin } = useAuth();
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -42,7 +42,7 @@ export function ParticipantsPage() {
       const results = await participantApi.search(query);
       setParticipants(results);
       if (results.length === 0) {
-        showError('No participants found');
+        warning('No participants found for your search');
       }
     } catch (err) {
       showError('Search failed');
@@ -158,7 +158,7 @@ export function ParticipantsPage() {
                     onClick={() => setSelectedParticipant(participant)}
                     className={`w-full text-left p-3 sm:p-4 rounded-lg border-2 transition-all ${
                       selectedParticipant?.id === participant.id
-                        ? 'border-red-500 bg-red-50'
+                        ? 'border-green-500 bg-green-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
@@ -170,7 +170,12 @@ export function ParticipantsPage() {
                         <div className="text-xs sm:text-sm text-gray-600 truncate">{participant.uniqueId}</div>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <div className="text-xs sm:text-sm font-medium text-gray-900 whitespace-nowrap">{participant.totalPoints} pts</div>
+                        <div className="text-xs sm:text-sm font-medium text-gray-900 whitespace-nowrap">
+                          Total: {participant.totalPoints}
+                        </div>
+                        <div className="text-xs sm:text-sm font-medium text-green-700 whitespace-nowrap">
+                          Active: {participant.activePoints}
+                        </div>
                         <div className={`text-xs ${participant.status === 'ACTIVE' ? 'text-green-600' : 'text-red-600'}`}>
                           {participant.status}
                         </div>

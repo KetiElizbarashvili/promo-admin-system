@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import path from 'node:path';
 import { env } from './config/env';
 import { pool } from './config/database';
 import { connectRedis } from './infra/redis/client';
@@ -17,6 +18,9 @@ import publicRoutes from './api/public/routes';
 import adminRoutes from './api/admin/routes';
 
 const app = express();
+const uploadsDir = path.isAbsolute(env.UPLOAD_DIR)
+  ? env.UPLOAD_DIR
+  : path.join(process.cwd(), env.UPLOAD_DIR);
 
 // Explicit allowlist from env (comma-separated)
 const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean);
@@ -67,6 +71,7 @@ app.use(
 
 app.use(cookieParser(env.COOKIE_SECRET));
 app.use(express.json({ limit: '10kb' }));
+app.use('/uploads', express.static(uploadsDir));
 app.use(generalLimiter);
 app.use(requestLogger);
 

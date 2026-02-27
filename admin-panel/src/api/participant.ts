@@ -37,10 +37,21 @@ export const participantApi = {
     return response.data;
   },
 
-  completeRegistration: async (sessionId: string, participantData: any) => {
+  completeRegistration: async (
+    sessionId: string,
+    participantData: {
+      firstName: string;
+      lastName: string;
+      govId: string;
+      phone: string;
+      email: string;
+    },
+    options?: { skipEmailVerification?: boolean }
+  ) => {
     const response = await api.post('/participants/register/complete', {
       sessionId,
       ...participantData,
+      skipEmailVerification: options?.skipEmailVerification ?? false,
     });
     return response.data;
   },

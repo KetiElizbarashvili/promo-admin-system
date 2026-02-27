@@ -11,6 +11,8 @@ import { LeaderboardPage } from './pages/LeaderboardPage';
 import { StaffPage } from './pages/StaffPage';
 import { ActivityLogsPage } from './pages/ActivityLogsPage';
 import { CountdownPage } from './pages/CountdownPage';
+import { Toast } from './components/layout/Toast';
+import { ToastProvider } from './hooks/useToast';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -25,79 +27,82 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/countdown" element={<CountdownPage />} />
-            
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <DashboardPage />
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route
-              path="/participants/register"
-              element={
-                <ProtectedRoute>
-                  <RegisterParticipantPage />
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route
-              path="/participants"
-              element={
-                <ProtectedRoute>
-                  <ParticipantsPage />
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route
-              path="/prizes"
-              element={
-                <ProtectedRoute>
-                  <PrizesPage />
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route
-              path="/leaderboard"
-              element={
-                <ProtectedRoute>
-                  <LeaderboardPage />
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route
-              path="/staff"
-              element={
-                <ProtectedRoute requireSuperAdmin>
-                  <StaffPage />
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route
-              path="/logs"
-              element={
-                <ProtectedRoute requireSuperAdmin>
-                  <ActivityLogsPage />
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/countdown" element={<CountdownPage />} />
+              
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <DashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/participants/register"
+                element={
+                  <ProtectedRoute>
+                    <RegisterParticipantPage />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/participants"
+                element={
+                  <ProtectedRoute>
+                    <ParticipantsPage />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/prizes"
+                element={
+                  <ProtectedRoute>
+                    <PrizesPage />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/leaderboard"
+                element={
+                  <ProtectedRoute>
+                    <LeaderboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/staff"
+                element={
+                  <ProtectedRoute requireSuperAdmin>
+                    <StaffPage />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route
+                path="/logs"
+                element={
+                  <ProtectedRoute requireSuperAdmin>
+                    <ActivityLogsPage />
+                  </ProtectedRoute>
+                }
+              />
+              
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+            <Toast />
+          </BrowserRouter>
+        </AuthProvider>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

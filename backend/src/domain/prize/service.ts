@@ -126,9 +126,26 @@ export async function updatePrize(
   return rowToPrize(result.rows[0]);
 }
 
-export async function deletePrize(id: number): Promise<boolean> {
-  const result = await pool.query('DELETE FROM prizes WHERE id = $1', [id]);
-  return result.rowCount ? result.rowCount > 0 : false;
+export async function deletePrize(id: number): Promise<{ deleted: boolean; archived: boolean }> {
+  try {
+    const result = await pool.query('DELETE FROM prizes WHERE id = $1', [id]);
+    const deleted = result.rowCount ? result.rowCount > 0 : false;
+    return { deleted, archived: false };
+  } catch (error) {
+    // If DB blocks hard-delete (e.g. existing references), archive instead.
+    const dbError = error as { code?: string };
+    if (dbError.code === '23503') {
+      const archiveResult = await pool.query(
+        `UPDATE prizes
+         SET status = 'INACTIVE', updated_at = NOW()
+         WHERE id = $1`,
+        [id]
+      );
+      const archived = archiveResult.rowCount ? archiveResult.rowCount > 0 : false;
+      return { deleted: false, archived };
+    }
+    throw error;
+  }
 }
 
 export async function redeemPrize(

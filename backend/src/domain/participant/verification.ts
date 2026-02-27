@@ -168,3 +168,8 @@ export async function isVerificationComplete(sessionId: string): Promise<boolean
   const session = await getVerificationSession(sessionId);
   return session ? session.phoneVerified && session.emailVerified : false;
 }
+
+export async function isPhoneVerificationComplete(sessionId: string): Promise<boolean> {
+  const session = await getVerificationSession(sessionId);
+  return session ? session.phoneVerified : false;
+}

@@ -19,7 +19,7 @@ import {
   verifyPhoneOTP,
   sendEmailOTP,
   verifyEmailOTP,
-  isVerificationComplete,
+  isPhoneVerificationComplete,
   getVerificationSession,
 } from '../../domain/participant/verification';
 
@@ -50,6 +50,7 @@ const resendOTPSchema = z.object({
 
 const completeRegistrationSchema = z.object({
   sessionId: z.string(),
+  skipEmailVerification: z.boolean().optional(),
 });
 
 const searchSchema = z.object({
@@ -123,12 +124,14 @@ router.post(
         return;
       }
 
-      await sendEmailOTP(sessionId);
+      const emailOtpResult = await sendEmailOTP(sessionId);
 
       res.json({
-        message: 'Phone verified. Email verification code sent.',
+        message: emailOtpResult.success
+          ? 'Phone verified. Email verification code sent (optional).'
+          : 'Phone verified. Email verification is optional; code could not be sent.',
         sessionId,
-        nextStep: 'verify-email',
+        nextStep: 'verify-email-optional',
       });
     } catch (error) {
       res.status(500).json({ error: 'Phone verification failed' });
@@ -198,8 +201,8 @@ router.post(
     try {
       const { sessionId, firstName, lastName, govId, phone, email } = req.body;
 
-      if (!(await isVerificationComplete(sessionId))) {
-        res.status(400).json({ error: 'Verification not complete' });
+      if (!(await isPhoneVerificationComplete(sessionId))) {
+        res.status(400).json({ error: 'Phone verification not complete' });
         return;
       }
 
@@ -219,7 +222,7 @@ router.post(
       );
 
       res.json({
-        message: 'Participant registered successfully. Unique ID sent to phone and email.',
+        message: 'Participant registered successfully. Unique ID was generated and notifications were triggered.',
         participant,
       });
     } catch (error) {

@@ -1,5 +1,7 @@
 import { Router } from 'express';
 import { z } from 'zod';
+import multer from 'multer';
+import { env } from '../../config/env';
 import { validateBody } from '../../middleware/validator';
 import { authenticateToken, requireRole, AuthRequest } from '../../middleware/auth';
 import {
@@ -12,8 +14,23 @@ import {
   redeemPrize,
 } from '../../domain/prize/service';
 import { getParticipantByUniqueId } from '../../domain/participant/service';
+import { uploadPrizeImage } from '../../infra/storage/prizeImageStorage';
 
 const router = Router();
+const MAX_IMAGE_SIZE_BYTES = env.PRIZE_IMAGE_MAX_SIZE_MB * 1024 * 1024;
+const ALLOWED_IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_IMAGE_SIZE_BYTES },
+  fileFilter: (_req, file, callback) => {
+    if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
+      callback(new Error('Only JPG, PNG, WEBP, and GIF images are allowed'));
+      return;
+    }
+    callback(null, true);
+  },
+});
 
 const imageUrlField = z.string()
   .max(500)
@@ -96,6 +113,42 @@ router.get(
 );
 
 router.post(
+  '/upload-image',
+  authenticateToken,
+  requireRole(['SUPER_ADMIN']),
+  (req, res, next) => {
+    upload.single('image')(req, res, (error: unknown) => {
+      if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+          res.status(400).json({ error: `Image is too large. Max size is ${env.PRIZE_IMAGE_MAX_SIZE_MB}MB` });
+          return;
+        }
+        res.status(400).json({ error: 'Invalid image upload payload' });
+        return;
+      }
+      if (error) {
+        res.status(400).json({ error: error instanceof Error ? error.message : 'Image upload failed' });
+        return;
+      }
+      next();
+    });
+  },
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: 'Image file is required' });
+        return;
+      }
+
+      const imageUrl = await uploadPrizeImage(req.file.buffer, req.file.originalname);
+      res.status(201).json({ imageUrl });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to upload image' });
+    }
+  }
+);
+
+router.post(
   '/',
   authenticateToken,
   requireRole(['SUPER_ADMIN']),
@@ -146,10 +199,15 @@ router.delete(
   requireRole(['SUPER_ADMIN']),
   async (req, res) => {
     try {
-      const deleted = await deletePrize(parseInt(req.params.id));
+      const result = await deletePrize(parseInt(req.params.id));
 
-      if (!deleted) {
+      if (!result.deleted && !result.archived) {
         res.status(404).json({ error: 'Prize not found' });
+        return;
+      }
+
+      if (result.archived) {
+        res.json({ message: 'Prize has existing usage and was archived instead of deleted' });
         return;
       }
 

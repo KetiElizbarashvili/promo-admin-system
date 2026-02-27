@@ -55,8 +55,8 @@ export async function createParticipant(
 
     const row = result.rows[0];
 
-    // Send Unique ID to participant
-    await Promise.all([
+    // Notification delivery should not rollback participant creation.
+    await Promise.allSettled([
       sendUniqueIDEmail(email, firstName, uniqueId),
       sendUniqueIDSMS(phone, uniqueId),
     ]);

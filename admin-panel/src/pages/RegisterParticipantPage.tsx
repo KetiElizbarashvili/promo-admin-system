@@ -101,6 +101,22 @@ export function RegisterParticipantPage() {
     }
   };
 
+  const handleCompleteWithoutEmail = async () => {
+    setLoading(true);
+    try {
+      const result = await participantApi.completeRegistration(sessionId, formData, {
+        skipEmailVerification: true,
+      });
+      setRegisteredParticipant(result.participant);
+      setStep('complete');
+      success('Participant registered successfully without email verification');
+    } catch (err: any) {
+      showError(err.response?.data?.error || 'Failed to complete registration');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleResendOTP = async (type: 'phone' | 'email') => {
     if (resendCooldown > 0) return;
     setLoading(true);
@@ -319,6 +335,14 @@ export function RegisterParticipantPage() {
                 >
                   {resendCooldown > 0 ? `Resend (${resendCooldown}s)` : 'Resend Code'}
                 </button>
+                <button
+                  type="button"
+                  onClick={handleCompleteWithoutEmail}
+                  disabled={loading}
+                  className="btn btn-secondary text-sm sm:text-base"
+                >
+                  Skip Email Verification
+                </button>
               </div>
             </form>
           )}
@@ -346,7 +370,7 @@ export function RegisterParticipantPage() {
                   </p>
                 </div>
                 <p className="text-xs sm:text-sm text-gray-600">
-                  Unique ID has been sent to phone and email
+                  Unique ID has been generated and sent to available channels
                 </p>
               </div>
 

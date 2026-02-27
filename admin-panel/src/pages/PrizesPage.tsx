@@ -10,6 +10,9 @@ import { useAuth } from '../hooks/useAuth';
 export function PrizesPage() {
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [selectedImagePreview, setSelectedImagePreview] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingPrize, setEditingPrize] = useState<Prize | null>(null);
   const [showRedeem, setShowRedeem] = useState(false);
@@ -35,6 +38,14 @@ export function PrizesPage() {
     loadPrizes();
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (selectedImagePreview) {
+        URL.revokeObjectURL(selectedImagePreview);
+      }
+    };
+  }, [selectedImagePreview]);
+
   const loadPrizes = async () => {
     setLoading(true);
     try {
@@ -51,10 +62,17 @@ export function PrizesPage() {
     e.preventDefault();
     setLoading(true);
     try {
+      let imageUrlToSave = formData.imageUrl || null;
+
+      if (selectedImageFile) {
+        setUploadingImage(true);
+        imageUrlToSave = await prizeApi.uploadImage(selectedImageFile);
+      }
+
       const data = {
         name: formData.name,
         description: formData.description || null,
-        imageUrl: formData.imageUrl || null,
+        imageUrl: imageUrlToSave,
         costPoints: parseInt(formData.costPoints),
         stockQty: formData.stockQty ? parseInt(formData.stockQty) : null,
       };
@@ -72,6 +90,7 @@ export function PrizesPage() {
     } catch (err: any) {
       showError(err.response?.data?.error || 'Failed to save prize');
     } finally {
+      setUploadingImage(false);
       setLoading(false);
     }
   };
@@ -85,7 +104,37 @@ export function PrizesPage() {
       costPoints: prize.costPoints.toString(),
       stockQty: prize.stockQty?.toString() || '',
     });
+    if (selectedImagePreview) {
+      URL.revokeObjectURL(selectedImagePreview);
+    }
+    setSelectedImageFile(null);
+    setSelectedImagePreview(null);
     setShowForm(true);
+  };
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const maxSizeBytes = 5 * 1024 * 1024;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!allowedTypes.includes(file.type)) {
+      showError('Only JPG, PNG, WEBP, and GIF images are allowed');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > maxSizeBytes) {
+      showError('Image is too large. Maximum size is 5MB');
+      event.target.value = '';
+      return;
+    }
+
+    if (selectedImagePreview) {
+      URL.revokeObjectURL(selectedImagePreview);
+    }
+
+    setSelectedImageFile(file);
+    setSelectedImagePreview(URL.createObjectURL(file));
   };
 
   const handleDelete = async (id: number) => {
@@ -96,8 +145,8 @@ export function PrizesPage() {
       await prizeApi.delete(id);
       success('Prize deleted successfully');
       loadPrizes();
-    } catch (err) {
-      showError('Failed to delete prize');
+    } catch (err: any) {
+      showError(err.response?.data?.error || 'Failed to delete prize');
     } finally {
       setLoading(false);
     }
@@ -107,6 +156,11 @@ export function PrizesPage() {
     setShowForm(false);
     setEditingPrize(null);
     setFormData({ name: '', description: '', imageUrl: '', costPoints: '', stockQty: '' });
+    if (selectedImagePreview) {
+      URL.revokeObjectURL(selectedImagePreview);
+    }
+    setSelectedImagePreview(null);
+    setSelectedImageFile(null);
   };
 
   const handleSearchParticipant = async () => {
@@ -208,14 +262,39 @@ export function PrizesPage() {
                 />
               </div>
               <div>
-                <label className="label">Image URL (optional)</label>
-                <input
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                  className="input"
-                  placeholder="https://example.com/image.jpg"
-                />
+                <label className="label">Prize Image (optional)</label>
+                <div className="space-y-3">
+                  {(selectedImagePreview || formData.imageUrl) && (
+                    <img
+                      src={selectedImagePreview || formData.imageUrl}
+                      alt="Prize preview"
+                      className="w-full max-w-xs h-40 object-cover rounded-lg border border-gray-200 bg-gray-50"
+                    />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleImageChange}
+                    className="input file:mr-4 file:rounded-md file:border-0 file:bg-red-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-red-700"
+                  />
+                  <p className="text-xs text-gray-500">Supported: JPG, PNG, WEBP, GIF. Max size: 5MB.</p>
+                  {(selectedImagePreview || formData.imageUrl) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (selectedImagePreview) {
+                          URL.revokeObjectURL(selectedImagePreview);
+                        }
+                        setSelectedImagePreview(null);
+                        setSelectedImageFile(null);
+                        setFormData({ ...formData, imageUrl: '' });
+                      }}
+                      className="text-sm text-red-600 hover:text-red-700 font-medium"
+                    >
+                      Remove image
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -241,8 +320,8 @@ export function PrizesPage() {
                 </div>
               </div>
               <div className="flex space-x-3">
-                <button type="submit" disabled={loading} className="btn btn-primary">
-                  {loading ? 'Saving...' : editingPrize ? 'Update Prize' : 'Create Prize'}
+                <button type="submit" disabled={loading || uploadingImage} className="btn btn-primary">
+                  {uploadingImage ? 'Uploading image...' : loading ? 'Saving...' : editingPrize ? 'Update Prize' : 'Create Prize'}
                 </button>
                 <button type="button" onClick={handleCancel} className="btn btn-secondary">
                   Cancel

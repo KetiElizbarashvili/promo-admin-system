@@ -76,6 +76,37 @@ body {
   .transform {
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  .toast-enter {
+    animation: toast-enter 180ms ease-out;
+  }
+
+  .toast-progress {
+    transform-origin: left center;
+    animation-name: toast-progress;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+  }
+}
+
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toast-progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
 }
 
 /* Touch-friendly targets on mobile */

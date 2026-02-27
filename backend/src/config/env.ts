@@ -38,6 +38,10 @@ const envSchema = z.object({
   TWILIO_AUTH_TOKEN: z.string().optional(),
   TWILIO_PHONE_NUMBER: z.string().optional(),
 
+  PUBLIC_BASE_URL: z.string().url().default('http://localhost:3000'),
+  UPLOAD_DIR: z.string().default('uploads'),
+  PRIZE_IMAGE_MAX_SIZE_MB: z.string().transform(Number).default('5'),
+
   OTP_EXPIRY_MINUTES: z.string().transform(Number).default('10'),
   OTP_MAX_ATTEMPTS: z.string().transform(Number).default('3'),
   OTP_RESEND_COOLDOWN_SECONDS: z.string().transform(Number).default('60'),
