@@ -11,6 +11,7 @@ import { LeaderboardPage } from './pages/LeaderboardPage';
 import { StaffPage } from './pages/StaffPage';
 import { ActivityLogsPage } from './pages/ActivityLogsPage';
 import { CountdownPage } from './pages/CountdownPage';
+import { LandingPage } from './pages/LandingPage';
 import { Toast } from './components/layout/Toast';
 import { ToastProvider } from './hooks/useToast';
 import './index.css';
@@ -32,7 +33,9 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/countdown" element={<CountdownPage />} />
+              <Route path="/landing" element={<LandingPage />} />
+              <Route path="/countdown" element={<LandingPage />} />
+              <Route path="/legacy-countdown" element={<CountdownPage />} />
               
               <Route
                 path="/"

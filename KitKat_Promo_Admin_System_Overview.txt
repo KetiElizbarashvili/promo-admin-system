@@ -1,0 +1,225 @@
+================================================================================
+  KITKAT PROMO ADMIN SYSTEM — FUNCTIONAL OVERVIEW
+================================================================================
+
+System type : Internal web application for managing a promotional campaign
+Brand       : KitKat (Official Partner of Formula 1®)
+Audience    : Internal staff and super-administrators only
+              (public access limited to the leaderboard lookup and countdown page)
+
+--------------------------------------------------------------------------------
+TECHNOLOGY STACK
+--------------------------------------------------------------------------------
+
+  Frontend         React, TypeScript, Vite, TailwindCSS
+  Backend          Node.js, Express, TypeScript
+  Database         PostgreSQL
+  Cache/Sessions   Redis
+  Email delivery   SMTP (Nodemailer)
+  SMS delivery     Twilio
+  Hosting          Vercel (frontend)
+
+--------------------------------------------------------------------------------
+USER ROLES
+--------------------------------------------------------------------------------
+
+  SUPER_ADMIN
+    Full access — all features including staff management, activity logs,
+    participant lock/unlock, and full prize/staff CRUD.
+
+  STAFF
+    Operational access — can register participants, add points, redeem prizes,
+    and view the leaderboard.
+
+--------------------------------------------------------------------------------
+APPLICATION PAGES & FEATURES
+--------------------------------------------------------------------------------
+
+1. LOGIN
+   -------
+   - Username and password authentication.
+   - Session stored in a secure, httpOnly cookie (8-hour duration).
+   - Brute-force protection: locked after 5 failed attempts in 15 minutes.
+   - Token revocation on logout via Redis.
+
+--------------------------------------------------------------------------------
+
+2. DASHBOARD
+   ----------
+   - Central home screen with quick-access cards to all main sections.
+   - Displays system status indicators: Backend, Database, Redis.
+
+--------------------------------------------------------------------------------
+
+3. REGISTER PARTICIPANT  [Staff & Super Admin]
+   -----------------------------------------------
+   A guided, multi-step registration flow with OTP (one-time password)
+   verification to confirm participant identity before account creation.
+
+   Steps:
+     1. Staff enters participant details:
+           First name, Last name, Government ID, Phone number, Email
+     2. System checks for duplicates — phone, email, and government ID
+        must all be unique across the system.
+     3. A 6-digit OTP is sent to the participant's phone via SMS.
+     4. Staff enters the OTP to verify the phone number.
+     5. A 6-digit OTP is sent to the participant's email address.
+     6. Staff enters the OTP to verify the email.
+     7. Account is created; participant receives their Unique ID
+        by both SMS and email.
+
+   Unique ID:
+     A system-generated identifier the participant uses to check their
+     rank on the public leaderboard. Never changes once assigned.
+
+--------------------------------------------------------------------------------
+
+4. PARTICIPANTS MANAGEMENT  [Staff & Super Admin]
+   -------------------------------------------------
+   - View full list of all registered participants.
+   - Search participants by name, phone, email, or unique ID.
+   - View individual participant profile: points balance, status, join date.
+   - Add Points to any active participant (with optional note/reason).
+     All point additions are recorded in the audit log.
+   - Lock Participant [Super Admin only] — requires entering a reason.
+     Locked participants cannot redeem prizes.
+   - Unlock Participant [Super Admin only] — restores active status.
+
+   Points system:
+     Each participant has two counters:
+       Total Points  — cumulative points ever earned; used for leaderboard ranking.
+       Active Points — current spendable balance; reduced when prizes are redeemed.
+
+--------------------------------------------------------------------------------
+
+5. PRIZE MANAGEMENT
+   ------------------
+   Prize catalog management [Super Admin only]:
+     - Create prizes with: Name, Description, Image URL, Cost in points,
+       Stock quantity, Status (Active / Inactive).
+     - Edit any prize details at any time.
+     - Activate or deactivate prizes (inactive prizes cannot be redeemed).
+     - Delete prizes from the catalog.
+     - Stock is tracked automatically — if a prize has a defined quantity,
+       it decrements by 1 on each successful redemption.
+
+   Prize Redemption [Staff & Super Admin]:
+     - Staff selects a participant (by Unique ID) and chooses a prize.
+     - System validates all of the following before approving:
+         * Participant status is ACTIVE (not locked)
+         * Prize status is ACTIVE
+         * Participant has sufficient active points
+         * Stock is available (if the prize has a quantity limit)
+     - On success: active points are deducted and the redemption is logged.
+
+--------------------------------------------------------------------------------
+
+6. LEADERBOARD  [Staff & Super Admin]
+   ------------------------------------
+   - Ranked list of all participants sorted by total points (descending).
+   - Shows rank, Unique ID, name, total points, and active points.
+   - Supports pagination; displays up to 1,000 entries.
+
+   Public Leaderboard (no login required):
+     - A public-facing endpoint lets participants check their own position
+       by entering their Unique ID.
+     - Exposes only: rank, first/last name, and point totals.
+       No private data (phone, email, gov ID) is returned.
+
+--------------------------------------------------------------------------------
+
+7. STAFF MANAGEMENT  [Super Admin only]
+   ----------------------------------------
+   - View all staff accounts with role and status.
+
+   Create new staff account:
+     1. Super Admin enters: first name, last name, email, role.
+     2. A 6-digit verification code is emailed to the new staff member.
+     3. Super Admin confirms the code in the system.
+     4. System auto-generates a username and a secure random password.
+     5. Login credentials are emailed to the new staff member.
+
+   Additional actions:
+     - Reset password — generates a new random password and emails it.
+     - Activate / Disable a staff account (cannot change your own status).
+
+--------------------------------------------------------------------------------
+
+8. ACTIVITY LOGS  [Super Admin only]
+   -------------------------------------
+   Complete, tamper-evident audit trail of every significant action in the system.
+
+   Logged event types:
+
+     REGISTER            New participant created
+     ADD_POINTS          Points added to a participant
+     REDEEM              Participant redeemed a prize
+     ADJUST              Manual point adjustment
+     STAFF_CREATE        New staff account created
+     RESET_PASSWORD      Staff password was reset
+     LOCK_PARTICIPANT    Participant was locked
+     UNLOCK_PARTICIPANT  Participant was unlocked
+
+   Each log entry records:
+     Event type, participant name, staff member who performed the action,
+     points change, prize name (if applicable), optional note, timestamp.
+
+   Filtering:
+     Logs can be filtered by event type, participant, staff member,
+     and date range.
+
+--------------------------------------------------------------------------------
+
+9. COUNTDOWN PAGE  [Public — no login required]
+   -------------------------------------------------
+   - A standalone public page accessible at /countdown.
+   - Displays a live countdown timer to the promotion raffle/event date
+     (March 4, 2026).
+   - Features KitKat and Formula 1 co-branding.
+   - Display text in Bulgarian language.
+
+--------------------------------------------------------------------------------
+SECURITY & COMPLIANCE
+--------------------------------------------------------------------------------
+
+  - All protected pages require authentication; unauthenticated users are
+    redirected to login automatically.
+  - Staff and Super Admin routes are strictly separated by role;
+    unauthorized access returns an error response.
+  - All inputs are validated and sanitized on the backend using strict schemas
+    (Zod). Client data is never trusted.
+  - Rate limiting is applied at multiple levels:
+      Global        General request throttling
+      Login         5 attempts per 15 minutes
+      OTP Send      1 request per minute per identifier
+      OTP Verify    10 attempts per 15 minutes
+  - Security headers enforced: HSTS, Content Security Policy, X-Frame-Options,
+    no-sniff, strict referrer policy.
+  - CORS restricted to an explicit allowlist of approved origins.
+  - Passwords hashed with bcrypt; OTP codes hashed before database storage.
+  - Sessions can be instantly revoked via Redis (e.g., on logout or
+    when an account is disabled).
+  - Structured JSON request logs with per-request tracing for all API calls.
+
+--------------------------------------------------------------------------------
+DATA SUMMARY
+--------------------------------------------------------------------------------
+
+  Entity          Key Fields
+  -----------     ----------------------------------------------------------
+  Staff User      Name, email, username, role (SUPER_ADMIN / STAFF),
+                  status (ACTIVE / DISABLED)
+
+  Participant     Unique ID, name, government ID, phone, email,
+                  total points, active points, status (ACTIVE / LOCKED)
+
+  Prize           Name, description, image URL, cost in points,
+                  stock quantity, status (ACTIVE / INACTIVE)
+
+  Transaction     Event type, participant, staff actor, points change,
+  Log             prize, optional note, timestamp
+
+================================================================================
+  Document generated: February 26, 2026
+  Project: promo-admin-system
+================================================================================
