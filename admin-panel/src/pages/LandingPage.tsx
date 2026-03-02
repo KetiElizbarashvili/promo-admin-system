@@ -118,7 +118,7 @@ export function LandingPage() {
           <img
             src="/landing/pitboard.png"
             alt="Pitboard"
-            className="ml-[4%] w-[28%] min-w-[120px] max-w-[320px]"
+            className="ml-[3%] h-[85%] w-auto object-contain drop-shadow-2xl"
           />
         </div>
       </section>
