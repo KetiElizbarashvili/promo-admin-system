@@ -155,8 +155,8 @@ export function LandingPage() {
         {/* Pack shot */}
         <div className="flex w-full items-center justify-center sm:w-auto sm:flex-1 sm:max-w-lg">
           <img
-            src="/landing/pack-shot-f1.png"
-            alt="KitKat F1 Official Chocolate Bar"
+            src="/landing/kitkat-bar.png"
+            alt="KitKat Bar"
             className="w-4/5 max-w-sm drop-shadow-2xl sm:w-full"
           />
         </div>
@@ -395,7 +395,7 @@ export function LandingPage() {
                 {
                   num: '1',
                   icon: (
-                    <img src="/landing/pack-shot-f1.png" alt="KitKat bar" className="h-full w-full object-contain p-2" />
+                    <img src="/landing/kitkat-bar.png" alt="KitKat bar" className="h-full w-full object-contain p-2" />
                   ),
                   title: 'Buy your KitKat promotional bar',
                   sub: 'See full list of participating bars here',
