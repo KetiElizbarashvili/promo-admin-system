@@ -118,7 +118,8 @@ export function LandingPage() {
           <img
             src="/landing/pitboard.png"
             alt="Pitboard"
-            className="ml-[3%] h-[85%] w-auto object-contain drop-shadow-2xl"
+            className="ml-[3%] max-h-[90%] w-auto object-contain"
+            style={{ aspectRatio: '1224 / 1696' }}
           />
         </div>
       </section>
@@ -127,7 +128,7 @@ export function LandingPage() {
       {/* ── Enter Here / How To Win buttons ── */}
       <section
         className="flex flex-col items-center justify-center gap-3 px-6 py-8 sm:flex-row sm:gap-6 sm:px-16 sm:py-10"
-        style={{ backgroundImage: 'url(/landing/kitkat-bar.png)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+        style={{ backgroundImage: 'url(/landing/bar-background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}
       >
         <a
           href="#enter"
