@@ -1,12 +1,27 @@
 import { useEffect, useState } from 'react';
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-// Set your raffle target date here (ISO 8601)
 const TARGET_DATE = new Date('2026-03-04T00:00:00');
 
-// Texts – edit as needed
-const TAGLINE = 'Готови! На старта...Почивка!';
-const SUBTITLE = 'Нещо вълнуващо наближава след:';
+type Lang = 'geo' | 'aze' | 'arm';
+
+const TEXTS: Record<Lang, { tagline: string; subtitle: string; units: [string, string, string, string] }> = {
+  geo: {
+    tagline: 'ყურადღებაა! მოემზადეეეეთ.... შესვენება!',
+    subtitle: 'ამაღელვებელი სიახლე გველის',
+    units: ['დ', 'ს', 'წთ', 'წ'],
+  },
+  aze: {
+    tagline: 'Həyəcan yüksəlir… artıq çox az qalıb, tezliklə başlayırıq!',
+    subtitle: '',
+    units: ['G', 'S', 'D', 'Sn'],
+  },
+  arm: {
+    tagline: 'Պատրա՞ստ ես․․․ Հետհաշվարկը սկսված է',
+    subtitle: '',
+    units: ['օ', 'ժ', 'ր', 'վ'],
+  },
+};
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface TimeLeft {
@@ -32,17 +47,19 @@ function pad(n: number): string {
 
 export function CountdownPage() {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(calcTimeLeft);
+  const [lang, setLang] = useState<Lang>('geo');
 
   useEffect(() => {
     const id = setInterval(() => setTimeLeft(calcTimeLeft()), 1000);
     return () => clearInterval(id);
   }, []);
 
+  const t = TEXTS[lang];
   const units: Array<{ value: number; label: string }> = [
-    { value: timeLeft.days,    label: 'Д' },
-    { value: timeLeft.hours,   label: 'Ч' },
-    { value: timeLeft.minutes, label: 'М' },
-    { value: timeLeft.seconds, label: 'С' },
+    { value: timeLeft.days, label: t.units[0] },
+    { value: timeLeft.hours, label: t.units[1] },
+    { value: timeLeft.minutes, label: t.units[2] },
+    { value: timeLeft.seconds, label: t.units[3] },
   ];
 
   return (
@@ -57,11 +74,24 @@ export function CountdownPage() {
       {/* ── PARTNER LINE ── */}
       <p style={styles.partner}>Official Partner of Formula 1®</p>
 
+      {/* ── LANGUAGE SELECTOR ── */}
+      <div style={styles.langRow}>
+        {(['geo', 'aze', 'arm'] as const).map((l) => (
+          <button
+            key={l}
+            onClick={() => setLang(l)}
+            style={{ ...styles.langBtn, ...(lang === l ? styles.langBtnActive : {}) }}
+          >
+            {l.toUpperCase()}
+          </button>
+        ))}
+      </div>
+
       {/* ── TAGLINE ── */}
-      <p style={styles.tagline}>{TAGLINE}</p>
+      <p style={styles.tagline}>{t.tagline}</p>
 
       {/* ── SUBTITLE ── */}
-      <p style={styles.subtitle}>{SUBTITLE}</p>
+      {t.subtitle && <p style={styles.subtitle}>{t.subtitle}</p>}
 
       {/* ── COUNTDOWN PILL ── */}
       <div style={styles.pill}>
@@ -116,6 +146,27 @@ const styles: Record<string, React.CSSProperties> = {
     width: '1px',
     height: '52px',
     backgroundColor: 'rgba(255,255,255,0.5)',
+  },
+
+  // Language selector
+  langRow: {
+    display: 'flex',
+    gap: '8px',
+    marginBottom: '12px',
+  },
+  langBtn: {
+    padding: '6px 14px',
+    border: '1px solid rgba(255,255,255,0.5)',
+    borderRadius: '4px',
+    background: 'transparent',
+    color: '#fff',
+    fontSize: '12px',
+    fontWeight: 600,
+    cursor: 'pointer',
+  },
+  langBtnActive: {
+    background: 'rgba(255,255,255,0.2)',
+    borderColor: '#fff',
   },
 
   // Text

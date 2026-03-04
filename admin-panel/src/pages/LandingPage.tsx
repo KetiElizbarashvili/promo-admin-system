@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { publicApi } from '../api/public';
 import type { LeaderboardEntry } from '../types';
 const FOOTER_NAV = [
@@ -72,8 +72,7 @@ export function LandingPage() {
     ? leaderboard.filter((e) => e.uniqueId.toLowerCase().includes(lbSearch.trim().toLowerCase()))
     : leaderboard;
   const [slideIndex, setSlideIndex] = useState(0);
-  const [merchOffset, setMerchOffset] = useState(0);
-  const MERCH_VISIBLE = 3;
+  const merchScrollRef = useRef<HTMLDivElement>(null);
 
   function prevSlide() {
     setSlideIndex((i) => (i === 0 ? PRIZES_SLIDES.length - 1 : i - 1));
@@ -82,12 +81,11 @@ export function LandingPage() {
     setSlideIndex((i) => (i === PRIZES_SLIDES.length - 1 ? 0 : i + 1));
   }
   function prevMerch() {
-    setMerchOffset((i) => Math.max(0, i - 1));
+    merchScrollRef.current?.scrollBy({ left: -merchScrollRef.current.clientWidth, behavior: 'smooth' });
   }
   function nextMerch() {
-    setMerchOffset((i) => Math.min(MERCH_ITEMS.length - MERCH_VISIBLE, i + 1));
+    merchScrollRef.current?.scrollBy({ left: merchScrollRef.current.clientWidth, behavior: 'smooth' });
   }
-
 
   return (
     <div className="min-h-screen bg-[#f6f6f6] text-[#111]">
@@ -100,7 +98,7 @@ export function LandingPage() {
 
       {/* ── Hero video + pitboard ── */}
       {/* Mobile: full-viewport-height with video as bg; md+: natural video height */}
-      <section className="relative w-full overflow-hidden h-[70svh] md:h-auto">
+      <section className="relative w-full overflow-hidden h-[55svh] md:h-auto">
         <video
           src="/video/hero-banner.mp4"
           autoPlay
@@ -109,11 +107,11 @@ export function LandingPage() {
           playsInline
           className="absolute inset-0 h-full w-full object-cover md:static md:h-auto md:w-full"
         />
-        <div className="absolute inset-0 flex items-start justify-center pt-[18%] md:justify-start md:pl-[4%] md:pt-[14%]">
+        <div className="absolute inset-0 flex items-start justify-center pt-[3%] md:justify-start md:pl-[4%] ">
           <img
             src="/landing/pitboard.png"
             alt="Pitboard"
-            className="h-[88%] w-auto object-contain md:h-auto md:w-[36%] md:max-w-[420px] lg:w-[32%] lg:max-w-[520px]"
+            className="w-[88%] object-contain md:w-[36%] md:max-w-[420px] lg:w-[32%] lg:max-w-[520px]"
             style={{ aspectRatio: '1224 / 1696' }}
           />
         </div>
@@ -236,9 +234,9 @@ export function LandingPage() {
           style={{ borderColor: 'rgba(255,255,255,0.25)' }}
         >
           {/* Scrollable body */}
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto overflow-y-auto" style={{ maxHeight: '272px' }}>
             <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
-              <thead>
+              <thead className="sticky top-0 z-10">
                 <tr style={{ background: BRAND_RED_SECONDARY }}>
                   {[
                     'პოზიცია',
@@ -390,48 +388,52 @@ export function LandingPage() {
 
       {/* ── Merch ── */}
       <section className="overflow-hidden bg-white pb-0 pt-10">
+        <style>{`[data-merch-scroll]::-webkit-scrollbar{display:none}`}</style>
         {/* Title */}
        
 
-        {/* Carousel */}
-        <div className="relative flex items-center">
-          {/* Prev — far left edge */}
+        {/* Carousel: mobile = 1 centered scroll + arrows, laptop = 3 columns grid */}
+        <div className="relative">
+          <div
+            ref={merchScrollRef}
+            data-merch-scroll
+            className="flex overflow-x-auto scroll-smooth md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:px-4"
+            style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          >
+            {MERCH_ITEMS.slice(0, 3).map((item, i) => (
+            <div
+              key={i}
+              className="flex shrink-0 flex-col items-center justify-center text-center min-w-full w-full md:min-w-0 md:w-auto md:shrink"
+              style={{ scrollSnapAlign: 'center' }}
+            >
+              <div
+                className="mb-5 aspect-square w-full max-w-[208px] rounded-full"
+                style={{ background: BRAND_RED_PRIMARY }}
+              />
+              <p
+                className="mb-2 text-base font-black italic"
+                style={{ fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
+              >
+                {item.title}
+              </p>
+              <p className="max-w-[200px] text-sm italic text-gray-500 leading-snug">{item.description}</p>
+            </div>
+          ))}
+          </div>
+
+          {/* Arrows — mobile only */}
           <button
             onClick={prevMerch}
-            disabled={merchOffset === 0}
             aria-label="Previous merch"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white text-lg font-black transition-opacity disabled:opacity-20"
+            className="absolute left-2 top-[104px] -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full text-white text-lg font-black md:hidden"
             style={{ background: BRAND_RED_PRIMARY }}
           >
             ❮
           </button>
-
-          {/* Items grid */}
-          <div className="grid flex-1 grid-cols-1 gap-8 px-2 sm:grid-cols-3">
-            {MERCH_ITEMS.slice(merchOffset, merchOffset + MERCH_VISIBLE).map((item, i) => (
-              <div key={i} className="flex flex-col items-center text-center">
-                {/* Circle placeholder */}
-                <div
-                  className="mb-5 h-44 w-44 rounded-full sm:h-52 sm:w-52"
-                  style={{ background: BRAND_RED_PRIMARY }}
-                />
-                <p
-                  className="mb-2 text-base font-black italic"
-                  style={{ fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
-                >
-                  {item.title}
-                </p>
-                <p className="max-w-[200px] text-sm italic text-gray-500 leading-snug">{item.description}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Next — far right edge */}
           <button
             onClick={nextMerch}
-            disabled={merchOffset >= MERCH_ITEMS.length - MERCH_VISIBLE}
             aria-label="Next merch"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white text-lg font-black transition-opacity disabled:opacity-20"
+            className="absolute right-2 top-[104px] -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full text-white text-lg font-black md:hidden"
             style={{ background: BRAND_RED_PRIMARY }}
           >
             ❯
@@ -467,7 +469,7 @@ export function LandingPage() {
         <div className="mx-auto flex max-w-[1320px] flex-col sm:flex-row">
 
           {/* Left: content */}
-          <div className="flex flex-col px-6 py-8 sm:w-[52%] sm:px-10 sm:py-10">
+          <div className="flex flex-col px-6 py-8 sm:w-[52%] sm:px-10 sm:py-10 sm:pr-0">
 
             {/* 4 steps */}
             <div className="mb-8 grid grid-cols-2 gap-x-8 gap-y-7">
@@ -535,12 +537,12 @@ export function LandingPage() {
 
           </div>
 
-          {/* Right: transparent car — sits flush to bottom, bleeds out */}
-          <div className="relative flex items-end justify-center overflow-hidden sm:w-[48%]">
+          {/* Right: transparent car — sits flush to bottom and right, bleeds out */}
+          <div className="relative flex items-end justify-end overflow-hidden sm:w-[48%] sm:pl-0 sm:pr-0">
             <img
               src="/landing/car-transparent.png"
               alt="KitKat F1 car"
-              className="w-full object-contain object-bottom"
+              className="w-full object-contain object-bottom object-right"
               style={{ maxHeight: '520px' }}
             />
           </div>
