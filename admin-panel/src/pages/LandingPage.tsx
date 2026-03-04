@@ -1,8 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { publicApi } from '../api/public';
 import type { LeaderboardEntry } from '../types';
-import nestleLogo from '../assets/logo.svg';
-
 const FOOTER_NAV = [
   {
     heading: 'NEWS',
@@ -47,12 +45,14 @@ const MERCH_ITEMS = [
 
 const PRIZES_SLIDES = [
   {
-    image: '/landing/grandstand-tickets.png',
+    image: '/landing/grandstand-tickets.jpg',
     label: 'GRANDSTAND TICKETS',
+    sublabel: '',
   },
   {
-    image: '/landing/gp-canada.png',
-    label: 'GRAND PRIX EXPERIENCE',
+    image: '/landing/paddock-club.jpg',
+    label: 'PADDOCK CLUB™',
+    sublabel: 'INCLUDING FLIGHTS & ACCOMODATION',
   },
 ];
 
@@ -61,9 +61,16 @@ const BRAND_RED_SECONDARY = '#c20018';
 const BRAND_RED_DARK = '#8b0000';
 
 export function LandingPage() {
-  const [uniqueId, setUniqueId] = useState('');
-  const [searchResult, setSearchResult] = useState<LeaderboardEntry | null | 'not-found'>(null);
-  const [searching, setSearching] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [lbSearch, setLbSearch] = useState('');
+
+  useEffect(() => {
+    publicApi.getLeaderboard(100).then(setLeaderboard).catch(() => setLeaderboard([]));
+  }, []);
+
+  const filteredLb = lbSearch.trim()
+    ? leaderboard.filter((e) => e.uniqueId.toLowerCase().includes(lbSearch.trim().toLowerCase()))
+    : leaderboard;
   const [slideIndex, setSlideIndex] = useState(0);
   const [merchOffset, setMerchOffset] = useState(0);
   const MERCH_VISIBLE = 3;
@@ -81,44 +88,32 @@ export function LandingPage() {
     setMerchOffset((i) => Math.min(MERCH_ITEMS.length - MERCH_VISIBLE, i + 1));
   }
 
-  async function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    const trimmed = uniqueId.trim();
-    if (!trimmed) return;
-    setSearching(true);
-    setSearchResult(null);
-    const result = await publicApi.searchByUniqueId(trimmed);
-    setSearchResult(result ?? 'not-found');
-    setSearching(false);
-  }
 
   return (
     <div className="min-h-screen bg-[#f6f6f6] text-[#111]">
       {/* ── Header ── */}
-      <header
-        className="text-white"
-        style={{ background: `linear-gradient(90deg, ${BRAND_RED_PRIMARY} 0%, ${BRAND_RED_SECONDARY} 100%)` }}
-      >
-        <div className="mx-auto flex h-12 w-full max-w-[1320px] items-center px-4 sm:px-6 lg:px-8">
-          <img src="/kitkat.png" alt="KitKat" className="h-8 w-auto object-contain" />
+      <header className="text-white" style={{ background: BRAND_RED_PRIMARY }}>
+        <div className="mx-auto flex h-14 w-full max-w-[1320px] items-center px-4 sm:px-6 lg:px-8">
+          <img src="/kitkat.png" alt="KitKat" className="h-7 w-auto object-contain" />
         </div>
       </header>
 
       {/* ── Hero video + pitboard ── */}
-      <section className="relative w-full">
+      {/* Mobile: full-viewport-height with video as bg; md+: natural video height */}
+      <section className="relative w-full overflow-hidden h-[70svh] md:h-auto">
         <video
           src="/video/hero-banner.mp4"
           autoPlay
           loop
           muted
           playsInline
-          className="w-full"
+          className="absolute inset-0 h-full w-full object-cover md:static md:h-auto md:w-full"
         />
-        <div className="absolute inset-0 flex items-center">
+        <div className="absolute inset-0 flex items-start justify-center pt-[18%] md:justify-start md:pl-[4%] md:pt-[14%]">
           <img
             src="/landing/pitboard.png"
             alt="Pitboard"
-            className="ml-[3%] max-h-[90%] w-auto object-contain"
+            className="h-[88%] w-auto object-contain md:h-auto md:w-[36%] md:max-w-[420px] lg:w-[32%] lg:max-w-[520px]"
             style={{ aspectRatio: '1224 / 1696' }}
           />
         </div>
@@ -127,7 +122,7 @@ export function LandingPage() {
 
       {/* ── Enter Here / How To Win buttons ── */}
       <section
-        className="flex flex-col items-center justify-center gap-3 px-6 py-8 sm:flex-row sm:gap-6 sm:px-16 sm:py-10"
+        className="relative z-10 flex flex-col items-center justify-center gap-3 px-6 py-8 sm:flex-row sm:gap-6 sm:px-16 sm:py-10"
         style={{ backgroundImage: 'url(/landing/bar-background.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}
       >
         <a
@@ -146,99 +141,174 @@ export function LandingPage() {
         </a>
       </section>
 
-      {/* ── Enter Here + leaderboard search ── */}
+      {/* ── Leaderboard ── */}
       <section
         id="enter"
-        className="flex flex-col items-center gap-8 px-6 py-12 sm:flex-row sm:items-center sm:justify-center sm:gap-10 sm:px-12 sm:py-16"
+        className="flex flex-col items-center px-4 py-10 sm:px-10 sm:py-14"
         style={{ background: BRAND_RED_PRIMARY }}
       >
-        {/* Pack shot */}
-        <div className="flex w-full items-center justify-center sm:w-auto sm:flex-1 sm:max-w-lg">
-          <img
-            src="/landing/kitkat-bar.png"
-            alt="KitKat Bar"
-            className="w-4/5 max-w-sm drop-shadow-2xl sm:w-full"
-          />
-        </div>
-
-        {/* Card */}
-        <div className="w-full sm:w-auto sm:flex-1 sm:max-w-md">
-        <div
-          className="w-full rounded-[2.5rem] px-8 py-10 text-center"
-          style={{ background: BRAND_RED_DARK }}
-        >
-          {/* F1 + divider + KitKat logos */}
-          <div className="mb-3 flex items-center justify-center gap-4">
-            <img src="/formula.png" alt="Formula 1" className="h-10 w-auto object-contain" />
-            <div className="h-10 w-px bg-white/40" />
-            <img src="/kitkat.png" alt="KitKat" className="h-10 w-auto object-contain" />
-          </div>
-
-          <p className="mb-6 text-sm text-white/80">Official Chocolate Bar of Formula 1®</p>
-
-          {/* ENTER HERE image */}
-          <div className="mb-8 flex justify-center">
-            <img
-              src="/landing/enter-here-title.png"
-              alt="ENTER HERE"
-              className="w-full max-w-xs object-contain"
-            />
-          </div>
-
-          {/* Search form */}
-          <form onSubmit={handleSearch} className="flex items-center overflow-hidden rounded-full border-2 border-white/20 bg-white">
-            <input
-              type="text"
-              value={uniqueId}
-              onChange={(e) => setUniqueId(e.target.value)}
-              placeholder="Enter your code here..."
-              className="flex-1 bg-transparent px-5 py-3 text-sm italic text-gray-500 outline-none placeholder:italic"
-            />
-            <button
-              type="submit"
-              disabled={searching}
-              className="m-1 flex h-9 w-9 items-center justify-center rounded-full text-sm font-black text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-              style={{ background: BRAND_RED_SECONDARY }}
-            >
-              {searching ? '…' : 'Go'}
-            </button>
-          </form>
-
-          {/* Search result */}
-          {searchResult && searchResult !== 'not-found' && (
-            <div className="mt-5 rounded-2xl bg-white/10 p-4 text-white">
-              <p className="text-xs font-semibold uppercase tracking-widest text-white/60">Your ranking</p>
-              <p className="mt-1 text-3xl font-black">#{searchResult.rank}</p>
-              <p className="mt-1 text-base font-semibold">
-                {searchResult.firstName} {searchResult.lastName}
-              </p>
-              <div className="mt-2 flex justify-center gap-6 text-sm text-white/80">
-                <span><span className="font-bold text-white">{searchResult.totalPoints}</span> total pts</span>
-                <span><span className="font-bold text-white">{searchResult.activePoints}</span> active pts</span>
+        {/* Logos + tagline + nav */}
+        <div className="mb-8 w-full max-w-4xl">
+          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+            {/* Logos + tagline */}
+            <div className="flex flex-col items-center sm:items-start">
+              <div className="flex items-center gap-3">
+                <img src="/formula.png" alt="Formula 1" className="h-8 w-auto object-contain sm:h-10" />
+                <div className="h-8 w-px bg-white/40 sm:h-10" />
+                <img src="/kitkat.png" alt="KitKat" className="h-8 w-auto object-contain sm:h-10" />
               </div>
+              <p className="mt-1 text-[11px] text-white/70">Official Chocolate Bar of Formula 1®</p>
             </div>
-          )}
 
-          {searchResult === 'not-found' && (
-            <p className="mt-4 text-sm font-semibold text-white/70">
-              No participant found with that ID.
-            </p>
-          )}
+            {/* Nav buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
+              {[
+                {
+                  label: 'პრიზები',
+                  href: '#prizes',
+                  icon: (
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M20 12v10H4V12M22 7H2v5h20V7zM12 22V7M12 7a5 5 0 01-5-5c0 0 2.5 0 5 5zM12 7a5 5 0 005-5c0 0-2.5 0-5 5z" />
+                    </svg>
+                  ),
+                },
+                {
+                  label: 'გამარჯვებულები',
+                  href: '#enter',
+                  icon: (
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 21h8m-4-4v4M5 3h14l-2 8a5 5 0 01-10 0L5 3zM3 3h2m16 0h-2" />
+                    </svg>
+                  ),
+                },
+                {
+                  label: 'წესები',
+                  href: '#how-to-win',
+                  icon: (
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536M9 13l6.293-6.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414L12 16H9v-3z" />
+                    </svg>
+                  ),
+                },
+                {
+                  label: 'კონტაქტი',
+                  href: '#contact',
+                  icon: (
+                    <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  ),
+                },
+              ].map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  className="flex items-center gap-1.5 rounded border border-white/40 px-3 py-1.5 text-xs text-white transition-colors hover:bg-white/10"
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </a>
+              ))}
+            </div>
+          </div>
         </div>
+
+        {/* Search bar */}
+        <div className="mb-8 flex w-full max-w-2xl overflow-hidden rounded-lg bg-white shadow-lg">
+          <input
+            type="text"
+            value={lbSearch}
+            onChange={(e) => setLbSearch(e.target.value)}
+            placeholder="ჩაწერე შენი უნიკალური კოდი"
+            className="flex-1 bg-transparent px-5 py-3.5 text-sm text-gray-700 placeholder:text-gray-400 outline-none"
+          />
+          <button
+            className="px-7 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
+            style={{ background: BRAND_RED_DARK }}
+          >
+            ძიება
+          </button>
+        </div>
+
+        {/* Table */}
+        <div
+          className="w-full max-w-4xl overflow-hidden rounded-xl border-2"
+          style={{ borderColor: 'rgba(255,255,255,0.25)' }}
+        >
+          {/* Scrollable body */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: BRAND_RED_SECONDARY }}>
+                  {[
+                    'პოზიცია',
+                    'მონაწილის კოდი',
+                    'სულ შეფუთვები',
+                    'დარჩენილი შეფუთვები',
+                  ].map((h) => (
+                    <th
+                      key={h}
+                      className="px-5 py-3.5 text-center text-sm font-semibold text-white"
+                      style={{ borderBottom: '2px solid rgba(255,255,255,0.2)', borderRight: '1px solid rgba(255,255,255,0.15)' }}
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredLb.length === 0 ? (
+                  <tr style={{ background: BRAND_RED_PRIMARY }}>
+                    <td colSpan={4} className="py-10 text-center text-white/60">
+                      შედეგი ვერ მოიძებნა
+                    </td>
+                  </tr>
+                ) : (
+                  filteredLb.map((entry, i) => (
+                    <tr
+                      key={entry.uniqueId}
+                      style={{ background: i % 2 === 0 ? BRAND_RED_PRIMARY : BRAND_RED_SECONDARY }}
+                    >
+                      <td className="px-5 py-3 text-center text-white" style={{ borderBottom: '1px solid rgba(255,255,255,0.12)', borderRight: '1px solid rgba(255,255,255,0.12)' }}>{entry.rank}</td>
+                      <td className="px-5 py-3 text-center font-mono text-white" style={{ borderBottom: '1px solid rgba(255,255,255,0.12)', borderRight: '1px solid rgba(255,255,255,0.12)' }}>{entry.uniqueId}</td>
+                      <td className="px-5 py-3 text-center text-white" style={{ borderBottom: '1px solid rgba(255,255,255,0.12)', borderRight: '1px solid rgba(255,255,255,0.12)' }}>{entry.totalPoints}</td>
+                      <td className="px-5 py-3 text-center text-white" style={{ borderBottom: '1px solid rgba(255,255,255,0.12)' }}>{entry.activePoints}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          {/* Scrollbar hint — right red strip */}
+          <div className="absolute right-0 top-0 h-full w-1.5 rounded-r-xl" style={{ background: BRAND_RED_DARK }} />
         </div>
       </section>
 
       {/* ── Prizes to be won ── */}
-      <section id="how-to-win" className="flex flex-col sm:flex-row min-h-[340px]">
-        {/* Left: text panel */}
-        <div className="flex flex-col justify-start gap-5 bg-[#111] px-8 py-8 sm:w-[42%] sm:px-10 sm:py-10">
-          <div className="inline-block self-start">
-            <span
-              className="rounded px-3 py-1.5 text-base font-black italic text-white"
-              style={{ background: BRAND_RED_PRIMARY, fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
+      <section id="how-to-win" className="flex flex-col sm:flex-row">
+        {/* Text panel */}
+        <div className="flex flex-col gap-5 bg-[#111] px-8 py-8 sm:w-[42%] sm:px-10 sm:py-10">
+          {/* Angled red title badge */}
+          <div className="relative -mx-8 mb-2 sm:-mx-10">
+            <div
+              className="relative overflow-hidden px-8 py-3 sm:px-10"
+              style={{ background: BRAND_RED_PRIMARY }}
             >
-              Prizes to be won
-            </span>
+              <span
+                className="relative z-10 text-lg font-black italic text-white"
+                style={{ fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
+              >
+                Prizes to be won
+              </span>
+              {/* Diagonal cut on right edge */}
+              <div
+                className="absolute right-0 top-0 h-full w-12"
+                style={{
+                  background: '#111',
+                  clipPath: 'polygon(40% 0, 100% 0, 100% 100%, 0% 100%)',
+                }}
+              />
+            </div>
           </div>
 
           <div className="space-y-4 text-sm leading-relaxed text-white/90" style={{ fontFamily: "Arial, sans-serif" }}>
@@ -260,7 +330,7 @@ export function LandingPage() {
           </div>
 
           {/* Slide dots */}
-          <div className="mt-auto flex gap-2 pt-4">
+          <div className="mt-auto flex gap-2 pt-4 sm:hidden">
             {PRIZES_SLIDES.map((_, i) => (
               <button
                 key={i}
@@ -273,8 +343,8 @@ export function LandingPage() {
           </div>
         </div>
 
-        {/* Right: image carousel */}
-        <div className="relative flex-1 overflow-hidden">
+        {/* Image carousel */}
+        <div className="relative flex-1 overflow-hidden" style={{ minHeight: '300px' }}>
           {PRIZES_SLIDES.map((slide, i) => (
             <div
               key={i}
@@ -285,53 +355,64 @@ export function LandingPage() {
             </div>
           ))}
 
-          {/* Mobile: image needs height */}
-          <div className="h-64 sm:h-full sm:min-h-[340px]" />
-
-          {/* Prev / Next arrows */}
+          {/* Arrows */}
           <button
             onClick={prevSlide}
             aria-label="Previous slide"
-            className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white transition-colors hover:bg-black/70"
+            className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full text-2xl font-black text-white transition-colors"
+            style={{ background: BRAND_RED_PRIMARY }}
           >
             ‹
           </button>
           <button
             onClick={nextSlide}
             aria-label="Next slide"
-            className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white transition-colors hover:bg-black/70"
+            className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full text-2xl font-black text-white transition-colors"
+            style={{ background: BRAND_RED_PRIMARY }}
           >
             ›
           </button>
+
+          {/* Dots — desktop */}
+          <div className="absolute bottom-4 left-1/2 hidden -translate-x-1/2 gap-2 sm:flex">
+            {PRIZES_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                aria-label={`Slide ${i + 1}`}
+                onClick={() => setSlideIndex(i)}
+                className="h-2.5 w-2.5 rounded-full transition-colors"
+                style={{ background: i === slideIndex ? '#fff' : 'rgba(255,255,255,0.5)' }}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── Merch ── */}
       <section className="overflow-hidden bg-white pb-0 pt-10">
         {/* Title */}
-        <div className="mb-8 flex justify-center">
-          <img src="/landing/merch-title.png" alt="MERCH" className="h-24 w-auto object-contain sm:h-32" />
-        </div>
+       
 
         {/* Carousel */}
-        <div className="relative flex items-center px-10 sm:px-16">
-          {/* Prev */}
+        <div className="relative flex items-center">
+          {/* Prev — far left edge */}
           <button
             onClick={prevMerch}
             disabled={merchOffset === 0}
             aria-label="Previous merch"
-            className="absolute left-2 z-10 flex h-10 w-10 items-center justify-center rounded-full text-3xl font-black transition-opacity disabled:opacity-30 sm:left-4"
-            style={{ color: BRAND_RED_PRIMARY }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white text-lg font-black transition-opacity disabled:opacity-20"
+            style={{ background: BRAND_RED_PRIMARY }}
           >
-            ‹
+            ❮
           </button>
 
-          {/* Items */}
-          <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-3">
+          {/* Items grid */}
+          <div className="grid flex-1 grid-cols-1 gap-8 px-2 sm:grid-cols-3">
             {MERCH_ITEMS.slice(merchOffset, merchOffset + MERCH_VISIBLE).map((item, i) => (
               <div key={i} className="flex flex-col items-center text-center">
+                {/* Circle placeholder */}
                 <div
-                  className="mb-4 h-44 w-44 rounded-full sm:h-52 sm:w-52"
+                  className="mb-5 h-44 w-44 rounded-full sm:h-52 sm:w-52"
                   style={{ background: BRAND_RED_PRIMARY }}
                 />
                 <p
@@ -340,20 +421,20 @@ export function LandingPage() {
                 >
                   {item.title}
                 </p>
-                <p className="max-w-[220px] text-sm italic text-gray-600">{item.description}</p>
+                <p className="max-w-[200px] text-sm italic text-gray-500 leading-snug">{item.description}</p>
               </div>
             ))}
           </div>
 
-          {/* Next */}
+          {/* Next — far right edge */}
           <button
             onClick={nextMerch}
             disabled={merchOffset >= MERCH_ITEMS.length - MERCH_VISIBLE}
             aria-label="Next merch"
-            className="absolute right-2 z-10 flex h-10 w-10 items-center justify-center rounded-full text-3xl font-black transition-opacity disabled:opacity-30 sm:right-4"
-            style={{ color: BRAND_RED_PRIMARY }}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-white text-lg font-black transition-opacity disabled:opacity-20"
+            style={{ background: BRAND_RED_PRIMARY }}
           >
-            ›
+            ❯
           </button>
         </div>
 
@@ -361,8 +442,7 @@ export function LandingPage() {
         <div
           className="mt-10 h-8 w-full"
           style={{
-            backgroundImage:
-              'repeating-conic-gradient(#000 0% 25%, #fff 0% 50%)',
+            backgroundImage: 'repeating-conic-gradient(#000 0% 25%, #fff 0% 50%)',
             backgroundSize: '32px 32px',
           }}
         />
@@ -370,93 +450,60 @@ export function LandingPage() {
 
       {/* ── How to have your break ── */}
       <section className="relative overflow-hidden" style={{ background: BRAND_RED_PRIMARY }}>
-        <div className="relative z-10 mx-auto flex max-w-[1320px] flex-col sm:flex-row">
+
+        {/* Title banner — half width, diagonal right cut */}
+        <div
+          className="mt-8 w-full bg-white py-4 pl-6 sm:mt-10 sm:w-1/2 sm:pl-10"
+          style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 60px) 100%, 0 100%)' }}
+        >
+          <span
+            className="text-xl font-black italic sm:text-2xl"
+            style={{ color: BRAND_RED_PRIMARY, fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
+          >
+            How to have your break
+          </span>
+        </div>
+
+        <div className="mx-auto flex max-w-[1320px] flex-col sm:flex-row">
 
           {/* Left: content */}
-          <div className="flex flex-col justify-between px-6 py-8 sm:w-[52%] sm:px-10 sm:py-10">
-
-            {/* Title banner */}
-            <div className="mb-8 inline-block self-start">
-              <div
-                className="skew-x-[-6deg] bg-white px-5 py-2"
-              >
-                <span
-                  className="block skew-x-[6deg] text-xl font-black italic sm:text-2xl"
-                  style={{ color: BRAND_RED_PRIMARY, fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
-                >
-                  How to have your break
-                </span>
-              </div>
-            </div>
+          <div className="flex flex-col px-6 py-8 sm:w-[52%] sm:px-10 sm:py-10">
 
             {/* 4 steps */}
-            <div className="mb-8 grid grid-cols-2 gap-x-6 gap-y-8">
+            <div className="mb-8 grid grid-cols-2 gap-x-8 gap-y-7">
               {[
                 {
-                  num: '1',
-                  icon: (
-                    <img src="/landing/kitkat-bar.png" alt="KitKat bar" className="h-full w-full object-contain p-2" />
-                  ),
+                  img: '/landing/entry1.png',
+                  alt: 'Buy KitKat bar',
                   title: 'Buy your KitKat promotional bar',
                   sub: 'See full list of participating bars here',
                   subLink: true,
                 },
                 {
-                  num: '2',
-                  icon: (
-                    <img src="/landing/kitkat-bar.png" alt="Have a break" className="h-full w-full object-cover" />
-                  ),
+                  img: '/landing/entry2.png',
+                  alt: 'Have a break',
                   title: 'Have a break!',
                   sub: null,
                   subLink: false,
                 },
                 {
-                  num: '3',
-                  icon: (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <svg viewBox="0 0 80 50" className="h-3/4 w-3/4" fill="white">
-                        {[2,6,10,13,17,21,24,28,32,35,39,43,46,50,54,57,61,65,68,72,76].map((x, i) => (
-                          <rect key={i} x={x} y="2" width={i % 3 === 0 ? 2.5 : 1.5} height="38" />
-                        ))}
-                        <text x="40" y="48" textAnchor="middle" fontSize="8" fill="white">345678900</text>
-                      </svg>
-                    </div>
-                  ),
+                  img: '/landing/entry3.png',
+                  alt: 'Enter batch code',
                   title: 'Enter your bar, batch code & personal details',
                   sub: null,
                   subLink: false,
                 },
                 {
-                  num: '4',
-                  icon: (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <span
-                        className="text-2xl font-black italic text-white sm:text-3xl"
-                        style={{ fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
-                      >
-                        WIN
-                      </span>
-                    </div>
-                  ),
+                  img: '/landing/entry4.png',
+                  alt: 'Claim your break',
                   title: 'Claim your break!',
                   sub: null,
                   subLink: false,
                 },
               ].map((step) => (
-                <div key={step.num} className="flex flex-col items-start gap-2">
-                  <div className="relative">
-                    <div
-                      className="h-20 w-20 overflow-hidden rounded-full border-2 border-white/40 sm:h-24 sm:w-24"
-                      style={{ background: BRAND_RED_SECONDARY }}
-                    >
-                      {step.icon}
-                    </div>
-                    <span
-                      className="absolute -left-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-black"
-                      style={{ color: BRAND_RED_PRIMARY }}
-                    >
-                      {step.num}
-                    </span>
+                <div key={step.img} className="flex flex-col items-start gap-2">
+                  <div className="h-20 w-20 overflow-hidden rounded-full sm:h-24 sm:w-24">
+                    <img src={step.img} alt={step.alt} className="h-full w-full object-cover" />
                   </div>
                   <p className="text-sm font-bold italic text-white leading-tight">{step.title}</p>
                   {step.sub && (
@@ -486,29 +533,24 @@ export function LandingPage() {
               </a>
             </div>
 
-            {/* Legal */}
-            <p className="mt-6 text-center text-[10px] leading-relaxed text-white/60 sm:text-left">
-              The F1 FORMULA 1 logo, F1 logo, F1, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX
-              and related marks are trademarks of Formula One Licensing BV, a Formula 1 company
-            </p>
           </div>
 
-          {/* Right: car image */}
-          <div className="relative flex items-end justify-center sm:w-[48%]">
-            {/* desktop: red bg car */}
+          {/* Right: transparent car — sits flush to bottom, bleeds out */}
+          <div className="relative flex items-end justify-center overflow-hidden sm:w-[48%]">
             <img
-              src="/landing/car-red-bg.png"
+              src="/landing/car-transparent.png"
               alt="KitKat F1 car"
-              className="hidden w-full object-contain sm:block"
-            />
-            {/* mobile: front-on car */}
-            <img
-              src="/landing/car-front-mobile.png"
-              alt="KitKat F1 car"
-              className="block w-4/5 max-w-sm object-contain sm:hidden"
+              className="w-full object-contain object-bottom"
+              style={{ maxHeight: '520px' }}
             />
           </div>
         </div>
+
+        {/* Legal — full width, centered below both columns */}
+        <p className="px-6 pb-6 text-center text-[10px] leading-relaxed text-white/60 italic">
+          The F1 FORMULA 1 logo, F1 logo, F1, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX
+          and related marks are trademarks of Formula One Licensing BV, a Formula 1 company
+        </p>
       </section>
 
       {/* ── Footer ── */}
@@ -585,7 +627,7 @@ export function LandingPage() {
         {/* Bottom bar */}
         <div className="bg-white px-6 py-4 sm:px-12">
           <div className="mx-auto flex max-w-[1320px] flex-col items-center gap-3 sm:flex-row sm:justify-between">
-            <img src={nestleLogo} alt="Nestlé" className="h-8 w-auto object-contain opacity-70" />
+            <img src="/kitkat.png" alt="KitKat" className="h-8 w-auto object-contain opacity-70" />
             <p className="text-center text-xs text-gray-400">
               © 2024 Nestlé Limited, all rights reserved
             </p>
