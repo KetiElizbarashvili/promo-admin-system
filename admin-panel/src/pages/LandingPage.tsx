@@ -95,20 +95,20 @@ const LANDING_COPY: Record<Lang, LandingCopy> = {
     howToHaveYourBreak: 'How to have your break',
     steps: [
       {
-        img: '/landing/how-break-enter-ge.png',
+        img: '/landing/how-break-entry1.png',
         alt: 'Buy KitKat bar',
         title: 'Buy your KitKat promotional bar',
         sub: 'See full list of participating bars here',
         subLink: true,
-        imageStyle: 'banner',
+        imageStyle: 'icon',
       },
       {
-        img: '/landing/how-break-merch-ge.png',
+        img: '/landing/how-break-entry2.png',
         alt: 'Have a break',
         title: 'Have a break!',
         sub: null,
         subLink: false,
-        imageStyle: 'banner',
+        imageStyle: 'icon',
       },
       {
         img: '/landing/how-break-location.png',
@@ -188,20 +188,20 @@ const LANDING_COPY: Record<Lang, LandingCopy> = {
     howToHaveYourBreak: 'Fasiləni necə yaşamaq olar',
     steps: [
       {
-        img: '/landing/how-break-enter-az.png',
+        img: '/landing/how-break-entry1.png',
         alt: 'KitKat batonunu al',
         title: 'Promosyonlu KitKat batonunu al',
         sub: 'İştirak edən batonların tam siyahısına burada bax',
         subLink: true,
-        imageStyle: 'banner',
+        imageStyle: 'icon',
       },
       {
-        img: '/landing/how-break-merch-az.png',
+        img: '/landing/how-break-entry2.png',
         alt: 'Fasilə ver',
         title: 'Fasilə ver!',
         sub: null,
         subLink: false,
-        imageStyle: 'banner',
+        imageStyle: 'icon',
       },
       {
         img: '/landing/how-break-location.png',
@@ -281,20 +281,20 @@ const LANDING_COPY: Record<Lang, LandingCopy> = {
     howToHaveYourBreak: 'Ինչպես անցկացնել քո ընդմիջումը',
     steps: [
       {
-        img: '/landing/how-break-enter-am.png',
+        img: '/landing/how-break-entry1.png',
         alt: 'Գնիր KitKat բատոն',
         title: 'Գնիր քո պրոմո KitKat բատոնը',
         sub: 'Մասնակցող բատոնների ամբողջ ցանկը տես այստեղ',
         subLink: true,
-        imageStyle: 'banner',
+        imageStyle: 'icon',
       },
       {
-        img: '/landing/how-break-merch-am.png',
+        img: '/landing/how-break-entry2.png',
         alt: 'Ընդմիջում արա',
         title: 'Ընդմիջում արա!',
         sub: null,
         subLink: false,
-        imageStyle: 'banner',
+        imageStyle: 'icon',
       },
       {
         img: '/landing/how-break-location.png',
@@ -340,6 +340,12 @@ const PRIZES_BANNER_BY_LANG: Record<Lang, string> = {
   geo: '/landing/prizes-banner-ge.jpg',
   aze: '/landing/prizes-banner-az.jpg',
   arm: '/landing/prizes-banner-am.jpg',
+};
+
+const MERCH_TITLE_BY_LANG: Record<Lang, string> = {
+  geo: '/landing/merch-title-ge.png',
+  aze: '/landing/merch-title-az.png',
+  arm: '/landing/merch-title-am.png',
 };
 
 export function LandingPage() {
@@ -477,7 +483,8 @@ export function LandingPage() {
                 <a
                   key={item.label}
                   href={item.href}
-                  className="flex items-center gap-1.5 rounded border border-white/40 px-3 py-1.5 text-xs text-white transition-colors hover:bg-white/10"
+                  className="flex items-center gap-1.5 rounded border border-gray-200 bg-white px-3 py-1.5 text-xs transition-colors hover:bg-gray-50"
+                  style={{ color: BRAND_RED_PRIMARY }}
                 >
                   {item.icon}
                   <span>{item.label}</span>
@@ -554,29 +561,30 @@ export function LandingPage() {
       </section>
 
       {/* ── Prizes to be won ── */}
-      <section id="how-to-win" className="flex flex-col sm:flex-row">
+      <section id="how-to-win" className="flex flex-col overflow-hidden sm:flex-row sm:gap-0">
         {/* Text panel */}
-        <div className="flex flex-col gap-5 bg-[#111] px-8 py-8 sm:w-[42%] sm:px-10 sm:py-10">
-          {/* Angled red title badge */}
-          <div className="relative -mx-8 mb-2 sm:-mx-10">
+        <div className="flex flex-col gap-5 overflow-hidden bg-black px-8 py-8 sm:w-[42%] sm:shrink-0 sm:px-10 sm:py-10">
+          {/* Red title banner — SVG shape from brand assets */}
+          <div className="relative -mx-8 sm:-mx-10">
             <div
-              className="relative overflow-hidden px-8 py-3 sm:px-10"
-              style={{ background: BRAND_RED_PRIMARY }}
+              className="relative px-8 py-3.5 sm:px-10 sm:py-4"
+              style={{
+                backgroundImage: 'url(/landing/banner-red-wide.svg)',
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'left center',
+                minHeight: '56px',
+              }}
             >
               <span
-                className="relative z-10 text-lg font-black italic text-white"
-                style={{ fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
+                className="relative z-10 block text-lg font-black italic text-white sm:text-xl"
+                style={{
+                  fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif",
+                  textShadow: '0 1px 2px rgba(0,0,0,0.2)',
+                }}
               >
                 {copy.prizesTitle}
               </span>
-              {/* Diagonal cut on right edge */}
-              <div
-                className="absolute right-0 top-0 h-full w-12"
-                style={{
-                  background: '#111',
-                  clipPath: 'polygon(40% 0, 100% 0, 100% 100%, 0% 100%)',
-                }}
-              />
             </div>
           </div>
 
@@ -601,11 +609,11 @@ export function LandingPage() {
         </div>
 
         {/* Localized prize image */}
-        <div className="relative flex-1 overflow-hidden" style={{ minHeight: '300px' }}>
+        <div className="relative -ml-px flex-1 overflow-hidden sm:shrink" style={{ minHeight: '300px' }}>
           <img
             src={PRIZES_BANNER_BY_LANG[lang]}
             alt={copy.prizesTitle}
-            className="h-full w-full object-cover"
+            className="block h-full w-full object-cover"
           />
         </div>
       </section>
@@ -613,8 +621,14 @@ export function LandingPage() {
       {/* ── Merch ── */}
       <section className="overflow-hidden bg-white pb-0 pt-10">
         <style>{`[data-merch-scroll]::-webkit-scrollbar{display:none}`}</style>
-        {/* Title */}
-       
+        {/* Title — localized image centered above content */}
+        <div className="flex w-full justify-center px-4 pb-8">
+          <img
+            src={MERCH_TITLE_BY_LANG[lang]}
+            alt=""
+            className="h-auto w-full max-w-md object-contain"
+          />
+        </div>
 
         {/* Carousel: mobile = 1 centered scroll + arrows, laptop = 3 columns grid */}
         <div className="relative">
@@ -675,25 +689,32 @@ export function LandingPage() {
       </section>
 
       {/* ── How to have your break ── */}
-      <section className="relative overflow-hidden" style={{ background: BRAND_RED_PRIMARY }}>
+      <section className="relative flex flex-col overflow-hidden sm:flex-row" style={{ background: BRAND_RED_PRIMARY }}>
+        {/* Left: content panel */}
+        <div className="flex flex-col overflow-hidden px-8 py-8 sm:w-[52%] sm:px-10 sm:py-10">
+          {/* White title banner — diagonal right edge, solid white */}
+          <div className="relative -mx-8 sm:-mx-10">
+            <div
+              className="relative px-6 py-3.5 sm:px-8 sm:py-4"
+              style={{
+                background: '#ffffff',
+                clipPath: 'polygon(0 0, 100% 0, calc(100% - 20px) 100%, 0 100%)',
+                minHeight: '56px',
+              }}
+            >
+              <span
+                className="relative z-10 block text-lg font-black italic sm:text-xl"
+                style={{
+                  color: BRAND_RED_PRIMARY,
+                  fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif",
+                }}
+              >
+                {copy.howToHaveYourBreak}
+              </span>
+            </div>
+          </div>
 
-        {/* Title banner — half width, diagonal right cut */}
-        <div
-          className="mt-8 w-full bg-white py-4 pl-6 sm:mt-10 sm:w-1/2 sm:pl-10"
-          style={{ clipPath: 'polygon(0 0, 100% 0, calc(100% - 60px) 100%, 0 100%)' }}
-        >
-          <span
-            className="text-xl font-black italic sm:text-2xl"
-            style={{ color: BRAND_RED_PRIMARY, fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
-          >
-            {copy.howToHaveYourBreak}
-          </span>
-        </div>
-
-        <div className="mx-auto flex max-w-[1320px] flex-col sm:flex-row">
-
-          {/* Left: content */}
-          <div className="flex flex-col px-6 py-8 sm:w-[52%] sm:px-10 sm:py-10 sm:pr-0">
+          <div className="mt-5 flex flex-col sm:mt-6 sm:pr-0">
 
             {/* 4 steps */}
             <div className="mb-8 grid grid-cols-2 gap-x-8 gap-y-7">
@@ -745,24 +766,26 @@ export function LandingPage() {
             </div>
 
           </div>
-
-          {/* Right: transparent car — sits flush to bottom and right, bleeds out */}
-          <div className="relative flex items-end justify-end overflow-hidden sm:w-[48%] sm:pl-0 sm:pr-0">
-            <img
-              src="/landing/car-transparent.png"
-              alt="KitKat F1 car"
-              className="w-full object-contain object-bottom object-right"
-              style={{ maxHeight: '520px' }}
-            />
-          </div>
         </div>
 
-        {/* Legal — full width, centered below both columns */}
-        <p className="px-6 pb-6 text-center text-[10px] leading-relaxed text-white/60 italic">
+        {/* Right: car */}
+        <div className="relative flex flex-1 items-end justify-end overflow-hidden sm:min-h-[400px]">
+          <img
+            src="/landing/car-transparent.png"
+            alt="KitKat F1 car"
+            className="w-full object-contain object-bottom object-right"
+            style={{ maxHeight: '520px' }}
+          />
+        </div>
+      </section>
+
+      {/* Legal — full width below section */}
+      <div className="px-6 pb-6 text-center" style={{ background: BRAND_RED_PRIMARY }}>
+        <p className="text-[10px] leading-relaxed text-white/60 italic">
           The F1 FORMULA 1 logo, F1 logo, F1, FORMULA 1, FIA FORMULA ONE WORLD CHAMPIONSHIP, GRAND PRIX
           and related marks are trademarks of Formula One Licensing BV, a Formula 1 company
         </p>
-      </section>
+      </div>
 
       {/* ── Footer ── */}
       <footer>
