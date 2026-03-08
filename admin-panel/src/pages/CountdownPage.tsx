@@ -1,25 +1,25 @@
 import { useEffect, useState } from 'react';
+import { getLangFromDomain, type Lang } from '../utils/locale';
+import '../countdown-responsive.css';
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-const TARGET_DATE = new Date('2026-03-04T00:00:00');
-
-type Lang = 'geo' | 'aze' | 'arm';
+const TARGET_DATE = new Date('2026-04-01T00:01:00');
 
 const TEXTS: Record<Lang, { tagline: string; subtitle: string; units: [string, string, string, string] }> = {
   geo: {
     tagline: 'ყურადღებაა! მოემზადეეეეთ.... შესვენება!',
     subtitle: 'ამაღელვებელი სიახლე გველის',
-    units: ['დ', 'ს', 'წთ', 'წ'],
+    units: ['დღ', 'სტ', 'წთ', 'წმ'],
   },
   aze: {
     tagline: 'Həyəcan yüksəlir… artıq çox az qalıb, tezliklə başlayırıq!',
     subtitle: '',
-    units: ['G', 'S', 'D', 'Sn'],
+    units: ['Gün', 'Saat', 'Dəq.', 'San.'],
   },
   arm: {
     tagline: 'Պատրա՞ստ ես․․․ Հետհաշվարկը սկսված է',
     subtitle: '',
-    units: ['օ', 'ժ', 'ր', 'վ'],
+    units: ['Օր', 'Ժամ', 'Րոպե', 'Վրկ'],
   },
 };
 // ─────────────────────────────────────────────────────────────────────────────
@@ -45,9 +45,14 @@ function pad(n: number): string {
   return String(n).padStart(2, '0');
 }
 
-export function CountdownPage() {
+interface CountdownPageProps {
+  /** When set (e.g. in standalone builds), overrides domain-based detection. */
+  fixedLang?: Lang;
+}
+
+export function CountdownPage({ fixedLang }: CountdownPageProps = {}) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(calcTimeLeft);
-  const [lang, setLang] = useState<Lang>('geo');
+  const lang = fixedLang ?? getLangFromDomain();
 
   useEffect(() => {
     const id = setInterval(() => setTimeLeft(calcTimeLeft()), 1000);
@@ -62,44 +67,29 @@ export function CountdownPage() {
     { value: timeLeft.seconds, label: t.units[3] },
   ];
 
+  const base = (import.meta as { env?: { BASE_URL?: string } }).env?.BASE_URL ?? '/';
+  const BANNERS: Record<Lang, string> = {
+    arm: `${base}countdown-banner-am.png`,
+    aze: `${base}countdown-banner-az.png`,
+    geo: `${base}countdown-banner-ge.png`,
+  };
+
   return (
-    <div style={styles.root}>
-      {/* ── LOGOS ── */}
-      <div style={styles.logoRow}>
-        <img src="/formula.png" alt="Formula 1" style={styles.logoF1} />
-        <div style={styles.divider} />
-        <img src="/kitkat.png" alt="KitKat" style={styles.logoKitkat} />
-      </div>
+    <div className="countdown-page" style={styles.root}>
+      {/* ── BANNER (logos + text) ── */}
+      <img src={BANNERS[lang]} alt="KitKat Formula 1" className="countdown-banner" style={styles.banner} />
 
-      {/* ── PARTNER LINE ── */}
-      <p style={styles.partner}>Official Partner of Formula 1®</p>
-
-      {/* ── LANGUAGE SELECTOR ── */}
-      <div style={styles.langRow}>
-        {(['geo', 'aze', 'arm'] as const).map((l) => (
-          <button
-            key={l}
-            onClick={() => setLang(l)}
-            style={{ ...styles.langBtn, ...(lang === l ? styles.langBtnActive : {}) }}
-          >
-            {l.toUpperCase()}
-          </button>
-        ))}
-      </div>
-
-      {/* ── TAGLINE ── */}
-      <p style={styles.tagline}>{t.tagline}</p>
-
-      {/* ── SUBTITLE ── */}
-      {t.subtitle && <p style={styles.subtitle}>{t.subtitle}</p>}
+      {/* ── TAGLINE & SUBTITLE ── */}
+      <p className="countdown-tagline" style={styles.tagline}>{t.tagline}</p>
+      {t.subtitle && <p className="countdown-subtitle" style={styles.subtitle}>{t.subtitle}</p>}
 
       {/* ── COUNTDOWN PILL ── */}
-      <div style={styles.pill}>
+      <div className="countdown-pill" style={styles.pill}>
         {units.map(({ value, label }, i) => (
-          <span key={label} style={styles.unitGroup}>
-            <span style={styles.number}>{pad(value)}</span>
-            <span style={styles.label}>{label}</span>
-            {i < units.length - 1 && <span style={styles.sep} />}
+          <span key={label} className="countdown-unit-group" style={styles.unitGroup}>
+            <span className="countdown-number" style={styles.number}>{pad(value)}</span>
+            <span className="countdown-label" style={styles.label}>{label}</span>
+            {i < units.length - 1 && <span className="countdown-sep" style={styles.sep} />}
           </span>
         ))}
       </div>
@@ -112,6 +102,7 @@ const RED = '#CC0000';
 
 const styles: Record<string, React.CSSProperties> = {
   root: {
+    width: '100%',
     minHeight: '100vh',
     backgroundColor: RED,
     display: 'flex',
@@ -119,74 +110,32 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     justifyContent: 'center',
     gap: '12px',
-    padding: '40px 24px',
+    padding: '24px 16px',
+    boxSizing: 'border-box' as const,
+    overflowX: 'hidden' as const,
     fontFamily: "'Formula1Display', 'Helvetica Neue', Arial, sans-serif",
     color: '#fff',
     textAlign: 'center',
   },
 
-  // Logos
-  logoRow: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '28px',
-    marginBottom: '8px',
-  },
-  logoF1: {
-    height: '56px',
-    width: 'auto',
+  banner: {
+    maxWidth: '100%',
+    width: 'min(970px, 95vw)',
+    height: 'auto',
     objectFit: 'contain' as const,
-  },
-  logoKitkat: {
-    height: '52px',
-    width: 'auto',
-    objectFit: 'contain' as const,
-  },
-  divider: {
-    width: '1px',
-    height: '52px',
-    backgroundColor: 'rgba(255,255,255,0.5)',
-  },
-
-  // Language selector
-  langRow: {
-    display: 'flex',
-    gap: '8px',
-    marginBottom: '12px',
-  },
-  langBtn: {
-    padding: '6px 14px',
-    border: '1px solid rgba(255,255,255,0.5)',
-    borderRadius: '4px',
-    background: 'transparent',
-    color: '#fff',
-    fontSize: '12px',
-    fontWeight: 600,
-    cursor: 'pointer',
-  },
-  langBtnActive: {
-    background: 'rgba(255,255,255,0.2)',
-    borderColor: '#fff',
-  },
-
-  // Text
-  partner: {
-    fontSize: '15px',
-    fontWeight: 400,
-    margin: '0 0 16px',
-    letterSpacing: '0.3px',
+    marginBottom: '16px',
   },
   tagline: {
     fontSize: '14px',
     fontWeight: 400,
-    margin: '0',
-    opacity: 0.9,
+    margin: '0 0 4px',
+    opacity: 0.95,
   },
   subtitle: {
     fontSize: '14px',
     fontWeight: 400,
-    margin: '0 0 4px',
-    opacity: 0.9,
+    margin: '0 0 8px',
+    opacity: 0.95,
   },
 
   // Countdown
@@ -194,11 +143,16 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
+    flexWrap: 'nowrap' as const,
+    whiteSpace: 'nowrap' as const,
     backgroundColor: '#fff',
     borderRadius: '6px',
-    padding: '10px 40px',
+    padding: '8px 20px',
     gap: '0px',
-    minWidth: '320px',
+    width: '100%',
+    maxWidth: '320px',
+    minWidth: 0,
+    boxSizing: 'border-box' as const,
   },
   unitGroup: {
     display: 'flex',
@@ -206,18 +160,18 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '3px',
   },
   number: {
-    fontSize: '22px',
+    fontSize: '18px',
     fontWeight: 700,
     color: '#111',
     letterSpacing: '1px',
   },
   label: {
-    fontSize: '15px',
+    fontSize: '12px',
     fontWeight: 600,
     color: '#111',
   },
   sep: {
     display: 'inline-block',
-    width: '32px',
+    width: '24px',
   },
 };

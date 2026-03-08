@@ -6,7 +6,12 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "build:countdown": "npm run build:countdown:ge && npm run build:countdown:am && npm run build:countdown:az",
+    "build:countdown:ge": "tsc -b && VITE_COUNTDOWN_LANG=ge vite build && cp dist-legacy-countdown-ge/countdown-ge.html dist-legacy-countdown-ge/index.html",
+    "build:countdown:am": "tsc -b && VITE_COUNTDOWN_LANG=am vite build && cp dist-legacy-countdown-am/countdown-am.html dist-legacy-countdown-am/index.html",
+    "build:countdown:az": "tsc -b && VITE_COUNTDOWN_LANG=az vite build && cp dist-legacy-countdown-az/countdown-az.html dist-legacy-countdown-az/index.html",
+    "preview": "vite preview",
+    "preview:countdown": "npm run build:countdown:ge && npx serve -p 4173 dist-legacy-countdown-ge"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

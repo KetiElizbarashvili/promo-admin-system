@@ -1,66 +1,350 @@
 import { useEffect, useRef, useState } from 'react';
 import { publicApi } from '../api/public';
 import type { LeaderboardEntry } from '../types';
-const FOOTER_NAV = [
-  {
-    heading: 'NEWS',
-    links: ['Latest News'],
-  },
-  {
-    heading: 'ABOUT',
-    links: ['History'],
-  },
-  {
-    heading: 'CAMPAIGNS',
-    links: ['Candy Crush KitKat', 'Formula 1'],
-  },
-  {
-    heading: 'CONTACT US',
-    links: ['Global Contact', 'Find your region'],
-  },
-];
+import { getLangFromDomain, type Lang } from '../utils/locale';
 
-const MERCH_ITEMS = [
-  {
-    title: 'Nestle KitKat F1® Helmet',
-    description: "Immerse yourself in the KitKat experience at select races. We're talking interactive games, photo ops, and maybe even",
-  },
-  {
-    title: 'Nestle KitKat F1® Helmet',
-    description: "Immerse yourself in the KitKat experience at select races. We're talking interactive games, photo ops, and maybe even",
-  },
-  {
-    title: 'Nestle KitKat F1® Helmet',
-    description: "Immerse yourself in the KitKat experience at select races. We're talking interactive games, photo ops, and maybe even",
-  },
-  {
-    title: 'Nestle KitKat F1® Jacket',
-    description: "Immerse yourself in the KitKat experience at select races. We're talking interactive games, photo ops, and maybe even",
-  },
-  {
-    title: 'Nestle KitKat F1® Cap',
-    description: "Immerse yourself in the KitKat experience at select races. We're talking interactive games, photo ops, and maybe even",
-  },
-];
+interface FooterNavColumn {
+  heading: string;
+  links: string[];
+}
 
-const PRIZES_SLIDES = [
-  {
-    image: '/landing/grandstand-tickets.jpg',
-    label: 'GRANDSTAND TICKETS',
-    sublabel: '',
+interface MerchItem {
+  title: string;
+  description: string;
+}
+
+interface StepItem {
+  img: string;
+  alt: string;
+  title: string;
+  sub: string | null;
+  subLink: boolean;
+  imageStyle: 'banner' | 'icon';
+}
+
+interface LandingCopy {
+  enterHere: string;
+  howToWin: string;
+  officialTagline: string;
+  leaderboardNav: [string, string, string, string];
+  searchPlaceholder: string;
+  searchButton: string;
+  tableHeaders: [string, string, string, string];
+  noResults: string;
+  prizesTitle: string;
+  prizesIntro: string;
+  prizesBlocks: Array<{ title: string; body: string }>;
+  merchItems: MerchItem[];
+  howToHaveYourBreak: string;
+  steps: StepItem[];
+  enterNow: string;
+  terms: string;
+  connectWithUs: string;
+  footerNav: FooterNavColumn[];
+  legalLinks: [string, string, string, string];
+}
+
+const LANDING_COPY: Record<Lang, LandingCopy> = {
+  geo: {
+    enterHere: 'Enter Here',
+    howToWin: 'How To Win',
+    officialTagline: 'Official Chocolate Bar of Formula 1®',
+    leaderboardNav: ['პრიზები', 'გამარჯვებულები', 'წესები', 'კონტაქტი'],
+    searchPlaceholder: 'ჩაწერე შენი უნიკალური კოდი',
+    searchButton: 'ძიება',
+    tableHeaders: ['პოზიცია', 'მონაწილის კოდი', 'სულ შეფუთვები', 'დარჩენილი შეფუთვები'],
+    noResults: 'შედეგი ვერ მოიძებნა',
+    prizesTitle: 'Prizes to be won',
+    prizesIntro: "Starting in 2025, we're turning up the heat with a whole season of awesome. Think:",
+    prizesBlocks: [
+      {
+        title: 'Grand Prix™ Goodies:',
+        body: "Keep your eyes peeled for exclusive KitKat F1® packs. They're collector's items you can actually eat!",
+      },
+      {
+        title: 'Fan Zone Fun:',
+        body: "Immerse yourself in the KitKat experience at select races. We're talking interactive games, photo ops, and maybe even a chance to design your own KitKat wrapper!",
+      },
+      {
+        title: 'Pit Stop Prizes:',
+        body: "We're giving away a whole bunch of cool stuff, from F1® merchandise to VIP race experiences. Stay tuned to find out how to enter!",
+      },
+    ],
+    merchItems: [
+      {
+        title: 'Nestle KitKat F1® Helmet',
+        description: "Immerse yourself in the KitKat experience at select races. We're talking interactive games, photo ops, and maybe even",
+      },
+      {
+        title: 'Nestle KitKat F1® Helmet',
+        description: "Immerse yourself in the KitKat experience at select races. We're talking interactive games, photo ops, and maybe even",
+      },
+      {
+        title: 'Nestle KitKat F1® Helmet',
+        description: "Immerse yourself in the KitKat experience at select races. We're talking interactive games, photo ops, and maybe even",
+      },
+      {
+        title: 'Nestle KitKat F1® Jacket',
+        description: "Immerse yourself in the KitKat experience at select races. We're talking interactive games, photo ops, and maybe even",
+      },
+      {
+        title: 'Nestle KitKat F1® Cap',
+        description: "Immerse yourself in the KitKat experience at select races. We're talking interactive games, photo ops, and maybe even",
+      },
+    ],
+    howToHaveYourBreak: 'How to have your break',
+    steps: [
+      {
+        img: '/landing/how-break-enter-ge.png',
+        alt: 'Buy KitKat bar',
+        title: 'Buy your KitKat promotional bar',
+        sub: 'See full list of participating bars here',
+        subLink: true,
+        imageStyle: 'banner',
+      },
+      {
+        img: '/landing/how-break-merch-ge.png',
+        alt: 'Have a break',
+        title: 'Have a break!',
+        sub: null,
+        subLink: false,
+        imageStyle: 'banner',
+      },
+      {
+        img: '/landing/how-break-location.png',
+        alt: 'Enter batch code',
+        title: 'Enter your bar, batch code & personal details',
+        sub: null,
+        subLink: false,
+        imageStyle: 'icon',
+      },
+      {
+        img: '/landing/how-break-win-ge.png',
+        alt: 'Claim your break',
+        title: 'Claim your break!',
+        sub: null,
+        subLink: false,
+        imageStyle: 'icon',
+      },
+    ],
+    enterNow: 'Enter Now',
+    terms: 'Terms & Conditions',
+    connectWithUs: 'Connect with us',
+    footerNav: [
+      { heading: 'NEWS', links: ['Latest News'] },
+      { heading: 'ABOUT', links: ['History'] },
+      { heading: 'CAMPAIGNS', links: ['Candy Crush KitKat', 'Formula 1'] },
+      { heading: 'CONTACT US', links: ['Global Contact', 'Find your region'] },
+    ],
+    legalLinks: ['Terms & Conditions', 'Privacy Policy', 'Cookie Consent', 'Sitemap'],
   },
-  {
-    image: '/landing/paddock-club.jpg',
-    label: 'PADDOCK CLUB™',
-    sublabel: 'INCLUDING FLIGHTS & ACCOMODATION',
+  aze: {
+    enterHere: 'Burada Qoşul',
+    howToWin: 'Necə Qazanmaq Olar',
+    officialTagline: 'Formula 1®-in rəsmi şokolad batoncuğu',
+    leaderboardNav: ['Mükafatlar', 'Qaliblər', 'Qaydalar', 'Əlaqə'],
+    searchPlaceholder: 'Unikal kodunu daxil et',
+    searchButton: 'Axtar',
+    tableHeaders: ['Mövqe', 'İştirakçı kodu', 'Ümumi qablaşdırma', 'Qalan qablaşdırma'],
+    noResults: 'Nəticə tapılmadı',
+    prizesTitle: 'Qazanılacaq mükafatlar',
+    prizesIntro: '2025-ci ildən etibarən bütün mövsüm boyu həyəcanı artırırıq. Səni bunlar gözləyir:',
+    prizesBlocks: [
+      {
+        title: 'Grand Prix™ hədiyyələri:',
+        body: 'Eksklüziv KitKat F1® qablaşdırmalarına diqqət et. Bunlar həm kolleksiya məhsuludur, həm də ləzzətlidir!',
+      },
+      {
+        title: 'Fan zona əyləncəsi:',
+        body: 'Seçilmiş yarışlarda KitKat təcrübəsinə qoşul. İnteraktiv oyunlar, foto zonalar və hətta öz KitKat qabını dizayn etmək şansı səni gözləyir!',
+      },
+      {
+        title: 'Pit stop mükafatları:',
+        body: 'F1® məhsullarından VIP yarış təcrübələrinə qədər bir çox möhtəşəm hədiyyə təqdim edirik. Necə qoşulacağını öyrənmək üçün bizi izləməyə davam et!',
+      },
+    ],
+    merchItems: [
+      {
+        title: 'Nestle KitKat F1® Dəbilqə',
+        description: 'Seçilmiş yarışlarda KitKat təcrübəsinin bir parçası ol. İnteraktiv oyunlar, foto fürsətləri və daha çoxu səni gözləyir.',
+      },
+      {
+        title: 'Nestle KitKat F1® Dəbilqə',
+        description: 'Seçilmiş yarışlarda KitKat təcrübəsinin bir parçası ol. İnteraktiv oyunlar, foto fürsətləri və daha çoxu səni gözləyir.',
+      },
+      {
+        title: 'Nestle KitKat F1® Dəbilqə',
+        description: 'Seçilmiş yarışlarda KitKat təcrübəsinin bir parçası ol. İnteraktiv oyunlar, foto fürsətləri və daha çoxu səni gözləyir.',
+      },
+      {
+        title: 'Nestle KitKat F1® Gödəkçə',
+        description: 'Seçilmiş yarışlarda KitKat təcrübəsinin bir parçası ol. İnteraktiv oyunlar, foto fürsətləri və daha çoxu səni gözləyir.',
+      },
+      {
+        title: 'Nestle KitKat F1® Papaq',
+        description: 'Seçilmiş yarışlarda KitKat təcrübəsinin bir parçası ol. İnteraktiv oyunlar, foto fürsətləri və daha çoxu səni gözləyir.',
+      },
+    ],
+    howToHaveYourBreak: 'Fasiləni necə yaşamaq olar',
+    steps: [
+      {
+        img: '/landing/how-break-enter-az.png',
+        alt: 'KitKat batonunu al',
+        title: 'Promosyonlu KitKat batonunu al',
+        sub: 'İştirak edən batonların tam siyahısına burada bax',
+        subLink: true,
+        imageStyle: 'banner',
+      },
+      {
+        img: '/landing/how-break-merch-az.png',
+        alt: 'Fasilə ver',
+        title: 'Fasilə ver!',
+        sub: null,
+        subLink: false,
+        imageStyle: 'banner',
+      },
+      {
+        img: '/landing/how-break-location.png',
+        alt: 'Partiya kodunu daxil et',
+        title: 'Batonunun kodunu, partiya kodunu və şəxsi məlumatlarını daxil et',
+        sub: null,
+        subLink: false,
+        imageStyle: 'icon',
+      },
+      {
+        img: '/landing/how-break-win-az.png',
+        alt: 'Mükafatını qazan',
+        title: 'Mükafatını qazan!',
+        sub: null,
+        subLink: false,
+        imageStyle: 'icon',
+      },
+    ],
+    enterNow: 'İndi Qoşul',
+    terms: 'Şərtlər və Qaydalar',
+    connectWithUs: 'Bizimlə əlaqə saxla',
+    footerNav: [
+      { heading: 'XƏBƏRLƏR', links: ['Son xəbərlər'] },
+      { heading: 'HAQQIMIZDA', links: ['Tarixçə'] },
+      { heading: 'KAMPANİYALAR', links: ['Candy Crush KitKat', 'Formula 1'] },
+      { heading: 'ƏLAQƏ', links: ['Qlobal əlaqə', 'Regionunu tap'] },
+    ],
+    legalLinks: ['Şərtlər və Qaydalar', 'Məxfilik Siyasəti', 'Cookie Razılığı', 'Sayt xəritəsi'],
   },
-];
+  arm: {
+    enterHere: 'Մասնակցիր այստեղ',
+    howToWin: 'Ինչպես հաղթել',
+    officialTagline: 'Formula 1®-ի պաշտոնական շոկոլադե բատոն',
+    leaderboardNav: ['Մրցանակներ', 'Հաղթողներ', 'Կանոններ', 'Կապ'],
+    searchPlaceholder: 'Մուտքագրիր քո եզակի կոդը',
+    searchButton: 'Որոնել',
+    tableHeaders: ['Դիրք', 'Մասնակցի կոդ', 'Ընդհանուր փաթեթներ', 'Մնացած փաթեթներ'],
+    noResults: 'Արդյունք չի գտնվել',
+    prizesTitle: 'Մրցանակներ, որոնք կարելի է շահել',
+    prizesIntro: '2025-ից սկսած մենք ամբողջ սեզոնը դարձնում ենք ավելի հետաքրքիր։ Ահա թե ինչ է սպասվում քեզ.',
+    prizesBlocks: [
+      {
+        title: 'Grand Prix™ նվերներ.',
+        body: 'Հետևիր բացառիկ KitKat F1® փաթեթավորումներին։ Դրանք կոլեկցիոն առարկաներ են, որոնք նաև կարելի է ուտել։',
+      },
+      {
+        title: 'Երկրպագուների գոտու զվարճանքներ.',
+        body: 'Միացիր KitKat փորձառությանը ընտրված մրցարշավներում։ Սպասվում են ինտերակտիվ խաղեր, լուսանկարվելու գոտիներ և նույնիսկ քո սեփական KitKat փաթեթավորումը ձևավորելու հնարավորություն։',
+      },
+      {
+        title: 'Pit stop մրցանակներ.',
+        body: 'Մենք նվիրում ենք բազմաթիվ հիանալի մրցանակներ` F1® ատրիբուտիկայից մինչև VIP մրցարշավային փորձառություններ։ Հետևիր մեզ, որպեսզի իմանաս ինչպես մասնակցել։',
+      },
+    ],
+    merchItems: [
+      {
+        title: 'Nestle KitKat F1® Սաղավարտ',
+        description: 'Դարձիր KitKat փորձառության մի մասը ընտրված մրցարշավներում։ Ինտերակտիվ խաղեր, լուսանկարվելու պահեր և շատ ավելին քեզ են սպասում։',
+      },
+      {
+        title: 'Nestle KitKat F1® Սաղավարտ',
+        description: 'Դարձիր KitKat փորձառության մի մասը ընտրված մրցարշավներում։ Ինտերակտիվ խաղեր, լուսանկարվելու պահեր և շատ ավելին քեզ են սպասում։',
+      },
+      {
+        title: 'Nestle KitKat F1® Սաղավարտ',
+        description: 'Դարձիր KitKat փորձառության մի մասը ընտրված մրցարշավներում։ Ինտերակտիվ խաղեր, լուսանկարվելու պահեր և շատ ավելին քեզ են սպասում։',
+      },
+      {
+        title: 'Nestle KitKat F1® Բաճկոն',
+        description: 'Դարձիր KitKat փորձառության մի մասը ընտրված մրցարշավներում։ Ինտերակտիվ խաղեր, լուսանկարվելու պահեր և շատ ավելին քեզ են սպասում։',
+      },
+      {
+        title: 'Nestle KitKat F1® Գլխարկ',
+        description: 'Դարձիր KitKat փորձառության մի մասը ընտրված մրցարշավներում։ Ինտերակտիվ խաղեր, լուսանկարվելու պահեր և շատ ավելին քեզ են սպասում։',
+      },
+    ],
+    howToHaveYourBreak: 'Ինչպես անցկացնել քո ընդմիջումը',
+    steps: [
+      {
+        img: '/landing/how-break-enter-am.png',
+        alt: 'Գնիր KitKat բատոն',
+        title: 'Գնիր քո պրոմո KitKat բատոնը',
+        sub: 'Մասնակցող բատոնների ամբողջ ցանկը տես այստեղ',
+        subLink: true,
+        imageStyle: 'banner',
+      },
+      {
+        img: '/landing/how-break-merch-am.png',
+        alt: 'Ընդմիջում արա',
+        title: 'Ընդմիջում արա!',
+        sub: null,
+        subLink: false,
+        imageStyle: 'banner',
+      },
+      {
+        img: '/landing/how-break-location.png',
+        alt: 'Մուտքագրիր խմբաքանակի կոդը',
+        title: 'Մուտքագրիր բատոնի, խմբաքանակի կոդը և անձնական տվյալները',
+        sub: null,
+        subLink: false,
+        imageStyle: 'icon',
+      },
+      {
+        img: '/landing/how-break-win-am.png',
+        alt: 'Ստացիր մրցանակդ',
+        title: 'Ստացիր մրցանակդ!',
+        sub: null,
+        subLink: false,
+        imageStyle: 'icon',
+      },
+    ],
+    enterNow: 'Մասնակցիր հիմա',
+    terms: 'Պայմաններ և կանոններ',
+    connectWithUs: 'Կապվիր մեզ հետ',
+    footerNav: [
+      { heading: 'ՆՈՐՈՒԹՅՈՒՆՆԵՐ', links: ['Վերջին նորություններ'] },
+      { heading: 'ՄԵՐ ՄԱՍԻՆ', links: ['Պատմություն'] },
+      { heading: 'ԱՐՇԱՎՆԵՐ', links: ['Candy Crush KitKat', 'Formula 1'] },
+      { heading: 'ԿԱՊ', links: ['Գլոբալ կապ', 'Գտիր քո տարածաշրջանը'] },
+    ],
+    legalLinks: ['Պայմաններ և կանոններ', 'Գաղտնիության քաղաքականություն', 'Cookie-ի համաձայնություն', 'Կայքի քարտեզ'],
+  },
+};
 
 const BRAND_RED_PRIMARY = '#db0f24';
 const BRAND_RED_SECONDARY = '#c20018';
 const BRAND_RED_DARK = '#8b0000';
 
+const PITBOARD_BY_LANG: Record<Lang, string> = {
+  geo: '/landing/pitboard-ge.png',
+  aze: '/landing/pitboard-az.png',
+  arm: '/landing/pitboard-am.png',
+};
+
+const PRIZES_BANNER_BY_LANG: Record<Lang, string> = {
+  geo: '/landing/prizes-banner-ge.jpg',
+  aze: '/landing/prizes-banner-az.jpg',
+  arm: '/landing/prizes-banner-am.jpg',
+};
+
 export function LandingPage() {
+  const lang = getLangFromDomain();
+  const copy = LANDING_COPY[lang];
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [lbSearch, setLbSearch] = useState('');
 
@@ -71,15 +355,7 @@ export function LandingPage() {
   const filteredLb = lbSearch.trim()
     ? leaderboard.filter((e) => e.uniqueId.toLowerCase().includes(lbSearch.trim().toLowerCase()))
     : leaderboard;
-  const [slideIndex, setSlideIndex] = useState(0);
   const merchScrollRef = useRef<HTMLDivElement>(null);
-
-  function prevSlide() {
-    setSlideIndex((i) => (i === 0 ? PRIZES_SLIDES.length - 1 : i - 1));
-  }
-  function nextSlide() {
-    setSlideIndex((i) => (i === PRIZES_SLIDES.length - 1 ? 0 : i + 1));
-  }
   function prevMerch() {
     merchScrollRef.current?.scrollBy({ left: -merchScrollRef.current.clientWidth, behavior: 'smooth' });
   }
@@ -107,12 +383,12 @@ export function LandingPage() {
           playsInline
           className="absolute inset-0 h-full w-full object-cover md:static md:h-auto md:w-full"
         />
-        <div className="absolute inset-0 flex items-start justify-center pt-[3%] md:justify-start md:pl-[4%] ">
+        <div className="pointer-events-none absolute inset-0 flex items-start justify-center pt-[20%] sm:block sm:pt-0">
           <img
-            src="/landing/pitboard.png"
+            src={PITBOARD_BY_LANG[lang]}
             alt="Pitboard"
-            className="w-[88%] object-contain md:w-[36%] md:max-w-[420px] lg:w-[32%] lg:max-w-[520px]"
-            style={{ aspectRatio: '1224 / 1696' }}
+            className="relative h-[108%] w-auto max-w-none object-contain object-top sm:absolute sm:-left-[4%] sm:top-[10%] sm:h-auto sm:w-[30%] md:left-[2%] md:top-[14%] md:w-[27%] lg:left-[8%] lg:top-[18%] lg:w-[24%]"
+            style={{ aspectRatio: '1020 / 1560', transform: 'rotate(-3deg)', transformOrigin: 'top center' }}
           />
         </div>
       </section>
@@ -128,14 +404,14 @@ export function LandingPage() {
           className="w-full max-w-sm rounded-lg bg-white px-10 py-4 text-center text-lg font-bold italic sm:w-auto sm:flex-1"
           style={{ color: BRAND_RED_PRIMARY, fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
         >
-          Enter Here
+          {copy.enterHere}
         </a>
         <a
           href="#how-to-win"
           className="w-full max-w-sm rounded-lg bg-white px-10 py-4 text-center text-lg font-bold italic sm:w-auto sm:flex-1"
           style={{ color: BRAND_RED_PRIMARY, fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
         >
-          How To Win
+          {copy.howToWin}
         </a>
       </section>
 
@@ -155,14 +431,14 @@ export function LandingPage() {
                 <div className="h-8 w-px bg-white/40 sm:h-10" />
                 <img src="/kitkat.png" alt="KitKat" className="h-8 w-auto object-contain sm:h-10" />
               </div>
-              <p className="mt-1 text-[11px] text-white/70">Official Chocolate Bar of Formula 1®</p>
+              <p className="mt-1 text-[11px] text-white/70">{copy.officialTagline}</p>
             </div>
 
             {/* Nav buttons */}
             <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
               {[
                 {
-                  label: 'პრიზები',
+                  label: copy.leaderboardNav[0],
                   href: '#prizes',
                   icon: (
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -171,7 +447,7 @@ export function LandingPage() {
                   ),
                 },
                 {
-                  label: 'გამარჯვებულები',
+                  label: copy.leaderboardNav[1],
                   href: '#enter',
                   icon: (
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -180,7 +456,7 @@ export function LandingPage() {
                   ),
                 },
                 {
-                  label: 'წესები',
+                  label: copy.leaderboardNav[2],
                   href: '#how-to-win',
                   icon: (
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -189,7 +465,7 @@ export function LandingPage() {
                   ),
                 },
                 {
-                  label: 'კონტაქტი',
+                  label: copy.leaderboardNav[3],
                   href: '#contact',
                   icon: (
                     <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24">
@@ -217,14 +493,14 @@ export function LandingPage() {
             type="text"
             value={lbSearch}
             onChange={(e) => setLbSearch(e.target.value)}
-            placeholder="ჩაწერე შენი უნიკალური კოდი"
+            placeholder={copy.searchPlaceholder}
             className="flex-1 bg-transparent px-5 py-3.5 text-sm text-gray-700 placeholder:text-gray-400 outline-none"
           />
           <button
             className="px-7 py-3.5 text-sm font-bold text-white transition-opacity hover:opacity-90"
             style={{ background: BRAND_RED_DARK }}
           >
-            ძიება
+            {copy.searchButton}
           </button>
         </div>
 
@@ -238,12 +514,7 @@ export function LandingPage() {
             <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
               <thead className="sticky top-0 z-10">
                 <tr style={{ background: BRAND_RED_SECONDARY }}>
-                  {[
-                    'პოზიცია',
-                    'მონაწილის კოდი',
-                    'სულ შეფუთვები',
-                    'დარჩენილი შეფუთვები',
-                  ].map((h) => (
+                  {copy.tableHeaders.map((h) => (
                     <th
                       key={h}
                       className="px-5 py-3.5 text-center text-sm font-semibold text-white"
@@ -258,7 +529,7 @@ export function LandingPage() {
                 {filteredLb.length === 0 ? (
                   <tr style={{ background: BRAND_RED_PRIMARY }}>
                     <td colSpan={4} className="py-10 text-center text-white/60">
-                      შედეგი ვერ მოიძებნა
+                      {copy.noResults}
                     </td>
                   </tr>
                 ) : (
@@ -296,7 +567,7 @@ export function LandingPage() {
                 className="relative z-10 text-lg font-black italic text-white"
                 style={{ fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
               >
-                Prizes to be won
+                {copy.prizesTitle}
               </span>
               {/* Diagonal cut on right edge */}
               <div
@@ -311,78 +582,31 @@ export function LandingPage() {
 
           <div className="space-y-4 text-sm leading-relaxed text-white/90" style={{ fontFamily: "Arial, sans-serif" }}>
             <p className="font-bold italic">
-              Starting in 2025, we're turning up the heat with a whole season of awesome. Think:
+              {copy.prizesIntro}
             </p>
             <p>
-              <span className="font-bold italic">Grand Prix™ Goodies:</span>{' '}
-              <span className="italic">Keep your eyes peeled for exclusive KitKat F1® packs. They're collector's items you can actually eat!</span>
+              <span className="font-bold italic">{copy.prizesBlocks[0].title}</span>{' '}
+              <span className="italic">{copy.prizesBlocks[0].body}</span>
             </p>
             <p>
-              <span className="font-bold italic">Fan Zone Fun:</span>{' '}
-              <span className="italic">Immerse yourself in the KitKat experience at select races. We're talking interactive games, photo ops, and maybe even a chance to design your own KitKat wrapper!</span>
+              <span className="font-bold italic">{copy.prizesBlocks[1].title}</span>{' '}
+              <span className="italic">{copy.prizesBlocks[1].body}</span>
             </p>
             <p>
-              <span className="font-bold italic">Pit Stop Prizes:</span>{' '}
-              <span className="italic">We're giving away a whole bunch of cool stuff, from F1® merchandise to VIP race experiences. Stay tuned to find out how to enter!</span>
+              <span className="font-bold italic">{copy.prizesBlocks[2].title}</span>{' '}
+              <span className="italic">{copy.prizesBlocks[2].body}</span>
             </p>
           </div>
 
-          {/* Slide dots */}
-          <div className="mt-auto flex gap-2 pt-4 sm:hidden">
-            {PRIZES_SLIDES.map((_, i) => (
-              <button
-                key={i}
-                aria-label={`Slide ${i + 1}`}
-                onClick={() => setSlideIndex(i)}
-                className="h-2.5 w-2.5 rounded-full transition-colors"
-                style={{ background: i === slideIndex ? '#fff' : 'rgba(255,255,255,0.3)' }}
-              />
-            ))}
-          </div>
         </div>
 
-        {/* Image carousel */}
+        {/* Localized prize image */}
         <div className="relative flex-1 overflow-hidden" style={{ minHeight: '300px' }}>
-          {PRIZES_SLIDES.map((slide, i) => (
-            <div
-              key={i}
-              className="absolute inset-0 transition-opacity duration-500"
-              style={{ opacity: i === slideIndex ? 1 : 0, pointerEvents: i === slideIndex ? 'auto' : 'none' }}
-            >
-              <img src={slide.image} alt={slide.label} className="h-full w-full object-cover" />
-            </div>
-          ))}
-
-          {/* Arrows */}
-          <button
-            onClick={prevSlide}
-            aria-label="Previous slide"
-            className="absolute left-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full text-2xl font-black text-white transition-colors"
-            style={{ background: BRAND_RED_PRIMARY }}
-          >
-            ‹
-          </button>
-          <button
-            onClick={nextSlide}
-            aria-label="Next slide"
-            className="absolute right-3 top-1/2 -translate-y-1/2 flex h-10 w-10 items-center justify-center rounded-full text-2xl font-black text-white transition-colors"
-            style={{ background: BRAND_RED_PRIMARY }}
-          >
-            ›
-          </button>
-
-          {/* Dots — desktop */}
-          <div className="absolute bottom-4 left-1/2 hidden -translate-x-1/2 gap-2 sm:flex">
-            {PRIZES_SLIDES.map((_, i) => (
-              <button
-                key={i}
-                aria-label={`Slide ${i + 1}`}
-                onClick={() => setSlideIndex(i)}
-                className="h-2.5 w-2.5 rounded-full transition-colors"
-                style={{ background: i === slideIndex ? '#fff' : 'rgba(255,255,255,0.5)' }}
-              />
-            ))}
-          </div>
+          <img
+            src={PRIZES_BANNER_BY_LANG[lang]}
+            alt={copy.prizesTitle}
+            className="h-full w-full object-cover"
+          />
         </div>
       </section>
 
@@ -400,7 +624,7 @@ export function LandingPage() {
             className="flex overflow-x-auto scroll-smooth md:grid md:grid-cols-3 md:gap-8 md:overflow-visible md:px-4"
             style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {MERCH_ITEMS.slice(0, 3).map((item, i) => (
+            {copy.merchItems.slice(0, 3).map((item, i) => (
             <div
               key={i}
               className="flex shrink-0 flex-col items-center justify-center text-center min-w-full w-full md:min-w-0 md:w-auto md:shrink"
@@ -462,7 +686,7 @@ export function LandingPage() {
             className="text-xl font-black italic sm:text-2xl"
             style={{ color: BRAND_RED_PRIMARY, fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
           >
-            How to have your break
+            {copy.howToHaveYourBreak}
           </span>
         </div>
 
@@ -473,39 +697,24 @@ export function LandingPage() {
 
             {/* 4 steps */}
             <div className="mb-8 grid grid-cols-2 gap-x-8 gap-y-7">
-              {[
-                {
-                  img: '/landing/entry1.png',
-                  alt: 'Buy KitKat bar',
-                  title: 'Buy your KitKat promotional bar',
-                  sub: 'See full list of participating bars here',
-                  subLink: true,
-                },
-                {
-                  img: '/landing/entry2.png',
-                  alt: 'Have a break',
-                  title: 'Have a break!',
-                  sub: null,
-                  subLink: false,
-                },
-                {
-                  img: '/landing/entry3.png',
-                  alt: 'Enter batch code',
-                  title: 'Enter your bar, batch code & personal details',
-                  sub: null,
-                  subLink: false,
-                },
-                {
-                  img: '/landing/entry4.png',
-                  alt: 'Claim your break',
-                  title: 'Claim your break!',
-                  sub: null,
-                  subLink: false,
-                },
-              ].map((step) => (
+              {copy.steps.map((step) => (
                 <div key={step.img} className="flex flex-col items-start gap-2">
-                  <div className="h-20 w-20 overflow-hidden rounded-full sm:h-24 sm:w-24">
-                    <img src={step.img} alt={step.alt} className="h-full w-full object-cover" />
+                  <div
+                    className={
+                      step.imageStyle === 'banner'
+                        ? 'flex h-12 w-full max-w-[220px] items-center sm:h-14 sm:max-w-[250px]'
+                        : 'h-20 w-20 overflow-hidden rounded-full sm:h-24 sm:w-24'
+                    }
+                  >
+                    <img
+                      src={step.img}
+                      alt={step.alt}
+                      className={
+                        step.imageStyle === 'banner'
+                          ? 'h-full w-full object-contain object-left'
+                          : 'h-full w-full object-contain'
+                      }
+                    />
                   </div>
                   <p className="text-sm font-bold italic text-white leading-tight">{step.title}</p>
                   {step.sub && (
@@ -524,14 +733,14 @@ export function LandingPage() {
                 className="rounded-lg bg-white py-3 text-center text-base font-black italic transition-opacity hover:opacity-90"
                 style={{ color: BRAND_RED_PRIMARY, fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
               >
-                Enter Now
+                {copy.enterNow}
               </a>
               <a
                 href="#"
                 className="rounded-lg bg-white py-3 text-center text-base font-black italic transition-opacity hover:opacity-90"
                 style={{ color: BRAND_RED_PRIMARY, fontFamily: "'Franklin Gothic Heavy', 'Arial Black', Arial, sans-serif" }}
               >
-                Terms &amp; Conditions
+                {copy.terms}
               </a>
             </div>
 
@@ -566,7 +775,7 @@ export function LandingPage() {
             {/* Connect with us */}
             <div>
               <p className="mb-3 text-sm font-black uppercase tracking-wider text-white">
-                Connect with us
+                {copy.connectWithUs}
               </p>
               <div className="flex items-center gap-4">
                 {/* Facebook */}
@@ -607,7 +816,7 @@ export function LandingPage() {
         {/* White nav band */}
         <div className="border-b border-gray-200 bg-white px-6 py-8 sm:px-12">
           <div className="mx-auto grid max-w-[1320px] grid-cols-2 gap-6 sm:grid-cols-4">
-            {FOOTER_NAV.map((col) => (
+            {copy.footerNav.map((col) => (
               <div key={col.heading}>
                 <p className="mb-3 text-xs font-black uppercase tracking-widest text-gray-900">
                   {col.heading}
@@ -634,7 +843,7 @@ export function LandingPage() {
               © 2024 Nestlé Limited, all rights reserved
             </p>
             <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
-              {['Terms & Conditions', 'Privacy Policy', 'Cookie Consent', 'Sitemap'].map((item) => (
+              {copy.legalLinks.map((item) => (
                 <a key={item} href="#" className="hover:text-gray-900">
                   {item}
                 </a>

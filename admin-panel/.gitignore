@@ -1,6 +1,9 @@
 node_modules
 dist
 dist-ssr
+dist-legacy-countdown-ge
+dist-legacy-countdown-am
+dist-legacy-countdown-az
 *.local
 .env
 .env.local

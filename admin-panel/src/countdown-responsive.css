@@ -1,0 +1,52 @@
+/* Shared responsive styles for CountdownPage - applied when used in app or standalone */
+
+@media (max-width: 600px) {
+  .countdown-pill .countdown-number {
+    font-size: 13px !important;
+  }
+  .countdown-pill .countdown-label {
+    font-size: 10px !important;
+  }
+  .countdown-pill .countdown-sep {
+    width: 16px !important;
+  }
+  .countdown-pill {
+    padding: 6px 12px !important;
+  }
+  .countdown-tagline,
+  .countdown-subtitle {
+    font-size: 12px !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .countdown-page {
+    padding: 12px 8px !important;
+    gap: 6px;
+  }
+  .countdown-banner {
+    margin-bottom: 8px !important;
+  }
+  .countdown-tagline,
+  .countdown-subtitle {
+    font-size: 10px !important;
+  }
+  .countdown-pill {
+    padding: 3px 4px !important;
+    max-width: 100%;
+    flex-wrap: nowrap !important;
+    white-space: nowrap;
+  }
+  .countdown-pill .countdown-number {
+    font-size: 7px !important;
+  }
+  .countdown-pill .countdown-label {
+    font-size: 6px !important;
+  }
+  .countdown-pill .countdown-sep {
+    width: 4px !important;
+  }
+  .countdown-pill .countdown-unit-group {
+    gap: 1px !important;
+  }
+}

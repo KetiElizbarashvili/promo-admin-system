@@ -35,6 +35,7 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/landing" element={<LandingPage />} />
               <Route path="/countdown" element={<LandingPage />} />
+              <Route path="/F1" element={<CountdownPage />} />
               <Route path="/legacy-countdown" element={<CountdownPage />} />
               
               <Route
