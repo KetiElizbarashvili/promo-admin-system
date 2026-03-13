@@ -30,13 +30,15 @@ const startRegistrationSchema = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
   govId: z.string().min(1).max(50),
-  phone: z.string().min(9).max(15).refine(
+  phone: z.string().min(9).max(16).refine(
     (p) => {
       const d = p.replace(/\D/g, '');
-      const local = d.startsWith('995') ? d.slice(3) : d;
-      return local.length === 9 && /^5[0-9]{8}$/.test(local);
+      if (d.startsWith('995')) return /^9955[0-9]{8}$/.test(d);  // Georgia
+      if (d.startsWith('994')) return /^994[0-9]{9}$/.test(d);   // Azerbaijan
+      if (d.startsWith('374')) return /^374[0-9]{8}$/.test(d);   // Armenia
+      return false;
     },
-    { message: 'Georgian mobile: +995 5XX XXX XXX' }
+    { message: 'Use international format: +995 5XX XXX XXX (GE), +994 XX XXX XXXX (AZ), +374 XX XXX XXX (AM)' }
   ),
   email: z.string().email(),
 });

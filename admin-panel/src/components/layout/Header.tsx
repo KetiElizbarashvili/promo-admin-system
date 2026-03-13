@@ -1,6 +1,7 @@
 import { useAuth } from '../../hooks/useAuth';
 import { LogOut, User as UserIcon, Menu } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { region } from '../../config/region';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -26,6 +27,10 @@ export function Header({ onMenuToggle }: HeaderProps) {
             <Link to="/" className="flex items-center space-x-3">
               <span className="text-lg sm:text-xl font-bold text-black truncate">
                 KitKat Promo Admin
+              </span>
+              <span className="hidden sm:flex items-center space-x-1 px-2 py-0.5 bg-gray-100 rounded text-sm font-medium text-gray-700">
+                <span aria-hidden="true">{region.flag}</span>
+                <span>{region.name}</span>
               </span>
             </Link>
           </div>

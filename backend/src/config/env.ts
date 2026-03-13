@@ -38,8 +38,9 @@ const envSchema = z.object({
 
   SMS_PROVIDER: z.enum(['ge_sms', 'az_sms', 'am_sms', 'mock']).optional(),
 
-  // Azerbaijan SMS provider (e.g. D7 Networks, SMSPM)
-  AZ_SMS_API_KEY: z.string().optional(),
+  // Azerbaijan SMS provider (LSIM)
+  AZ_SMS_LOGIN: z.string().optional(),
+  AZ_SMS_API_KEY: z.string().optional(),   // LSIM password
   AZ_SMS_SENDER: z.string().optional(),
   AZ_SMS_API_URL: z.string().url().optional(),
 
@@ -47,8 +48,9 @@ const envSchema = z.object({
   GE_SMS_API_KEY: z.string().optional(),
   GE_SMS_API_URL: z.string().optional(),
 
-  // Armenia SMS provider (e.g. EasySendSMS)
-  AM_SMS_API_KEY: z.string().optional(),
+  // Armenia SMS provider (MOBIPACE)
+  AM_SMS_USERNAME: z.string().optional(),
+  AM_SMS_API_KEY: z.string().optional(),   // MOBIPACE password
   AM_SMS_SENDER: z.string().optional(),
   AM_SMS_API_URL: z.string().url().optional(),
 

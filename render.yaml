@@ -6,6 +6,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: npm install --include=dev && npm run build
+    preDeployCommand: npm run migrate:up
     startCommand: npm start
     envVars:
       - key: NODE_ENV
@@ -29,10 +30,24 @@ services:
         generateValue: true
       - key: ALLOWED_ORIGINS
         sync: false
-      - key: SMS_PROVIDER
-        value: ge_sms
       - key: GE_SMS_API_KEY
         sync: false
+      - key: AZ_SMS_LOGIN
+        sync: false
+      - key: AZ_SMS_API_KEY
+        sync: false
+      - key: AZ_SMS_SENDER
+        sync: false
+      - key: AZ_SMS_API_URL
+        value: https://apps.lsim.az/quicksms/v1
+      - key: AM_SMS_USERNAME
+        sync: false
+      - key: AM_SMS_API_KEY
+        sync: false
+      - key: AM_SMS_SENDER
+        sync: false
+      - key: AM_SMS_API_URL
+        value: https://endpoint.mobipace.com:444
       - key: OTP_EXPIRY_MINUTES
         value: 10
       - key: OTP_MAX_ATTEMPTS

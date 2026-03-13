@@ -1,5 +1,16 @@
 import { env } from '../../config/env';
 import { getSmsProvider } from './providers';
+import { createGeSmsProvider } from './providers/ge-sms';
+import { createAzSmsProvider } from './providers/az-sms';
+import { createAmSmsProvider } from './providers/am-sms';
+import type { SmsProvider } from './providers/types';
+
+function detectProvider(phone: string): SmsProvider {
+  const d = phone.replace(/\D/g, '');
+  if (d.startsWith('994')) return createAzSmsProvider();
+  if (d.startsWith('374')) return createAmSmsProvider();
+  return createGeSmsProvider();
+}
 
 export async function sendSMS(phone: string, message: string): Promise<void> {
   if (env.SMS_PROVIDER === 'mock') {
@@ -7,7 +18,7 @@ export async function sendSMS(phone: string, message: string): Promise<void> {
     return;
   }
 
-  const provider = getSmsProvider();
+  const provider = env.SMS_PROVIDER ? getSmsProvider() : detectProvider(phone);
   await provider.send(phone, message);
 }
 

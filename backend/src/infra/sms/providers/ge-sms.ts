@@ -10,6 +10,12 @@ import type { SmsProvider } from './types';
 const DEFAULT_API_URL = 'https://sender.ge/api';
 const REQUEST_TIMEOUT_MS = 30000;
 const MAX_MESSAGE_LENGTH = 1000;
+const SMS_RETRY_ATTEMPTS = 3;
+const SMS_RETRY_DELAY_MS = 2000;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 function requireConfig(): { apiKey: string; apiUrl: string } {
   const apiKey = env.GE_SMS_API_KEY;
@@ -74,21 +80,32 @@ export function createGeSmsProvider(): SmsProvider {
       const destination = formatPhoneNumber(phone);
       const params = new URLSearchParams({
         apikey: apiKey,
-        smsno: '2',
+        smsno: '1',
         destination,
         content: message,
         priority: '1',
       });
 
-      const res = await fetchWithTimeout(sendUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString(),
-      });
+      let res!: Response;
+      let body!: string;
+      let lastError: Error | null = null;
 
-      const body = await res.text();
-      if (!res.ok) {
-        throw new Error(`GE SMS failed ${res.status}: ${body}`);
+      for (let attempt = 1; attempt <= SMS_RETRY_ATTEMPTS; attempt++) {
+        res = await fetchWithTimeout(sendUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: params.toString(),
+        });
+        body = await res.text();
+
+        if (res.ok) break;
+
+        lastError = new Error(`GE SMS failed ${res.status}: ${body}`);
+        const isRetryable = res.status >= 500 && res.status < 600;
+        if (!isRetryable || attempt === SMS_RETRY_ATTEMPTS) {
+          throw lastError;
+        }
+        await sleep(SMS_RETRY_DELAY_MS);
       }
 
       let data: { data?: Array<{ messageId?: string }>; message?: string };

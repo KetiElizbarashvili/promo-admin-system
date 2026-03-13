@@ -1,59 +1,89 @@
 /**
- * Azerbaijan SMS provider (D7 Networks compatible).
- * D7 API: POST /messages/v1/send, Bearer token, JSON body with messages array.
+ * Azerbaijan SMS provider (LSIM - apps.lsim.az).
+ * Send: POST /quicksms/v1/smssender, JSON body.
+ * Key:  md5( md5(password) + login + text + msisdn + sender )
  */
+import { createHash } from 'node:crypto';
 import { env } from '../../../config/env';
 import type { SmsProvider } from './types';
 
-const DEFAULT_API_URL = 'https://api.d7networks.com';
+const DEFAULT_API_URL = 'https://apps.lsim.az/quicksms/v1';
+const REQUEST_TIMEOUT_MS = 30_000;
 
-function requireConfig(): { apiKey: string; sender: string; apiUrl: string } {
-  const apiKey = env.AZ_SMS_API_KEY;
+interface LsimResponse {
+  successMessage: string | null;
+  errorMessage: string | null;
+  obj: number | null;
+  errorCode: number;
+}
+
+function md5(value: string): string {
+  return createHash('md5').update(value).digest('hex');
+}
+
+function buildKey(password: string, login: string, text: string, msisdn: string, sender: string): string {
+  return md5(md5(password) + login + text + msisdn + sender);
+}
+
+function requireConfig(): { login: string; password: string; sender: string; baseUrl: string } {
+  const login = env.AZ_SMS_LOGIN;
+  const password = env.AZ_SMS_API_KEY;
   const sender = env.AZ_SMS_SENDER;
-  if (!apiKey || !sender) {
-    throw new Error('AZ_SMS_API_KEY and AZ_SMS_SENDER must be set for Azerbaijan SMS');
+  if (!login || !password || !sender) {
+    throw new Error('AZ_SMS_LOGIN, AZ_SMS_API_KEY (password), and AZ_SMS_SENDER must be set for Azerbaijan SMS (LSIM)');
   }
   return {
-    apiKey,
+    login,
+    password,
     sender,
-    apiUrl: env.AZ_SMS_API_URL ?? DEFAULT_API_URL,
+    baseUrl: (env.AZ_SMS_API_URL ?? DEFAULT_API_URL).replace(/\/$/, ''),
   };
 }
 
 export function createAzSmsProvider(): SmsProvider {
-  const { apiKey, sender, apiUrl } = requireConfig();
-  const baseUrl = apiUrl.replace(/\/$/, '');
-  const sendUrl = `${baseUrl}/messages/v1/send`;
+  const { login, password, sender, baseUrl } = requireConfig();
+  const sendUrl = `${baseUrl}/smssender`;
 
   return {
     async send(phone: string, message: string): Promise<void> {
-      const toNumber = phone.startsWith('+') ? phone : `+${phone}`;
-      const res = await fetch(sendUrl, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          messages: [
-            {
-              originator: sender,
-              recipients: [toNumber],
-              content: message,
-              msg_type: 'text',
-              data_coding: 'text',
-            },
-          ],
-        }),
-      });
+      const msisdn = phone.replace(/^\+/, '');
+      const key = buildKey(password, login, message, msisdn, sender);
+
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+      let res: Response;
+      let body: string;
+      try {
+        res = await fetch(sendUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+          body: JSON.stringify({ login, key, msisdn, text: message, sender, unicode: false }),
+          signal: controller.signal,
+        });
+        body = await res.text();
+      } finally {
+        clearTimeout(timer);
+      }
 
       if (!res.ok) {
-        const errBody = await res.text();
-        throw new Error(`AZ SMS failed ${res.status}: ${errBody}`);
+        throw new Error(`AZ SMS HTTP error ${res.status}: ${body}`);
       }
-      const data = (await res.json()) as { request_id?: string };
+
+      let data: LsimResponse;
+      try {
+        data = JSON.parse(body) as LsimResponse;
+      } catch {
+        throw new Error(`AZ SMS invalid response: ${body}`);
+      }
+
+      if (data.errorCode !== 0) {
+        const detail = data.errorMessage ?? `errorCode ${data.errorCode}`;
+        throw new Error(`AZ SMS error: ${detail}`);
+      }
+
       process.stdout.write(
-        JSON.stringify({ level: 'info', event: 'sms_sent', provider: 'az_sms', request_id: data.request_id, to: phone }) + '\n'
+        JSON.stringify({ level: 'info', event: 'sms_sent', provider: 'az_sms_lsim', transactionId: data.obj, to: phone }) + '\n'
       );
     },
   };

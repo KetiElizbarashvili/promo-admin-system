@@ -27,9 +27,12 @@ export function RegisterParticipantPage() {
       errors.govId = 'Government ID must be exactly 11 digits';
     }
     const phoneDigits = formData.phone.replace(/\D/g, '');
-    const georgianPhone = phoneDigits.startsWith('995') ? phoneDigits.slice(3) : phoneDigits;
-    if (georgianPhone.length !== 9 || !/^5[0-9]{8}$/.test(georgianPhone)) {
-      errors.phone = 'Georgian mobile: +995 5XX XXX XXX (e.g. +995555123456)';
+    const validPhone =
+      /^9955[0-9]{8}$/.test(phoneDigits) ||
+      /^994[0-9]{9}$/.test(phoneDigits) ||
+      /^374[0-9]{8}$/.test(phoneDigits);
+    if (!validPhone) {
+      errors.phone = 'Use international format: +995 5XX XXX XXX (GE), +994 XX XXX XXXX (AZ), +374 XX XXX XXX (AM)';
     }
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -237,7 +240,7 @@ export function RegisterParticipantPage() {
                     if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }));
                   }}
                   className={`input ${fieldErrors.phone ? 'border-red-500 focus:ring-red-500' : ''}`}
-                  placeholder="+995 555 123 456"
+                  placeholder="+995 / +994 / +374 ..."
                   maxLength={18}
                   inputMode="tel"
                   required
