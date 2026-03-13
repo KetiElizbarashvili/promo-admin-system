@@ -43,7 +43,7 @@ nano .env  # Edit with your credentials
 **Required changes:**
 - `JWT_SECRET` - Already set with secure value
 - `SMTP_*` - Your email service credentials
-- `TWILIO_*` or SMS provider credentials
+- `GE_SMS_API_KEY` (sender.ge) or region-specific SMS credentials
 
 ### 4. Run Migrations
 
@@ -325,8 +325,7 @@ Check `.env` SMTP settings:
 
 ### SMS Not Sending
 - Currently using mock SMS (logs to console)
-- Integrate Twilio or your SMS provider
-- Update `src/infra/sms/service.ts`
+- Configure `GE_SMS_API_KEY` for sender.ge (Georgia)
 
 ## Next Steps
 

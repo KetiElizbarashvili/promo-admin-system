@@ -22,27 +22,25 @@ else
     exit 1
 fi
 
-# Test login
+# Test login (token in cookie)
 echo -e "\n2. Testing login..."
-LOGIN_RESPONSE=$(curl -s -X POST "$BASE_URL/auth/login" \
+COOKIE_FILE=$(mktemp)
+LOGIN_RESPONSE=$(curl -s -c "$COOKIE_FILE" -X POST "$BASE_URL/auth/login" \
     -H "Content-Type: application/json" \
     -d '{"username":"superadmin","password":"Admin@123"}')
 
-TOKEN=$(echo "$LOGIN_RESPONSE" | grep -o '"token":"[^"]*' | cut -d'"' -f4)
-
-if [ -n "$TOKEN" ]; then
+if echo "$LOGIN_RESPONSE" | grep -q '"user"'; then
     echo -e "${GREEN}✓ Login successful${NC}"
-    echo "Token: ${TOKEN:0:20}..."
 else
     echo -e "${RED}✗ Login failed${NC}"
     echo "Response: $LOGIN_RESPONSE"
+    rm -f "$COOKIE_FILE"
     exit 1
 fi
 
-# Test get staff
+# Test get staff (use cookie for auth)
 echo -e "\n3. Testing get staff list..."
-STAFF_RESPONSE=$(curl -s "$BASE_URL/staff" \
-    -H "Authorization: Bearer $TOKEN")
+STAFF_RESPONSE=$(curl -s -b "$COOKIE_FILE" "$BASE_URL/staff")
 
 if echo "$STAFF_RESPONSE" | grep -q "staff"; then
     echo -e "${GREEN}✓ Staff list retrieved${NC}"
@@ -53,8 +51,7 @@ fi
 
 # Test get prizes
 echo -e "\n4. Testing get prizes..."
-PRIZES_RESPONSE=$(curl -s "$BASE_URL/prizes" \
-    -H "Authorization: Bearer $TOKEN")
+PRIZES_RESPONSE=$(curl -s -b "$COOKIE_FILE" "$BASE_URL/prizes")
 
 if echo "$PRIZES_RESPONSE" | grep -q "prizes"; then
     echo -e "${GREEN}✓ Prizes list retrieved${NC}"
@@ -76,8 +73,7 @@ fi
 
 # Test admin leaderboard
 echo -e "\n6. Testing admin leaderboard..."
-ADMIN_LEADERBOARD=$(curl -s "$BASE_URL/admin/leaderboard?limit=10" \
-    -H "Authorization: Bearer $TOKEN")
+ADMIN_LEADERBOARD=$(curl -s -b "$COOKIE_FILE" "$BASE_URL/admin/leaderboard?limit=10")
 
 if echo "$ADMIN_LEADERBOARD" | grep -q "leaderboard"; then
     echo -e "${GREEN}✓ Admin leaderboard accessible${NC}"
@@ -88,8 +84,7 @@ fi
 
 # Test activity logs
 echo -e "\n7. Testing activity logs..."
-LOGS_RESPONSE=$(curl -s "$BASE_URL/admin/logs?limit=10" \
-    -H "Authorization: Bearer $TOKEN")
+LOGS_RESPONSE=$(curl -s -b "$COOKIE_FILE" "$BASE_URL/admin/logs?limit=10")
 
 if echo "$LOGS_RESPONSE" | grep -q "logs"; then
     echo -e "${GREEN}✓ Activity logs accessible${NC}"
@@ -98,9 +93,11 @@ else
     echo "Response: $LOGS_RESPONSE"
 fi
 
-# Test unauthorized access
+# Test unauthorized access (no cookie)
 echo -e "\n8. Testing authorization..."
-UNAUTHORIZED=$(curl -s -w "%{http_code}" "$BASE_URL/staff" -o /dev/null)
+UNAUTHORIZED=$(curl -s -w "%{http_code}" "$BASE_URL/staff" -o /dev/null -b "")
+
+rm -f "$COOKIE_FILE"
 
 if [ "$UNAUTHORIZED" = "401" ]; then
     echo -e "${GREEN}✓ Authorization working (401 on missing token)${NC}"

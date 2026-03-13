@@ -1,8 +1,10 @@
+# Azerbaijan deployment - use with: REGION=az, SMS_PROVIDER=az_sms
+# Deploy as separate Render Blueprint or merge into multi-service setup
 services:
   - type: web
-    name: kitkat-promo-backend
+    name: kitkat-promo-backend-az
     runtime: node
-    region: oregon
+    region: frankfurt
     plan: free
     rootDir: backend
     buildCommand: npm install --include=dev && npm run build
@@ -10,16 +12,18 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: REGION
+        value: az
       - key: PORT
         value: 3000
       - key: DATABASE_URL
         fromDatabase:
-          name: promo-db
+          name: promo-db-az
           property: connectionString
       - key: REDIS_URL
         fromService:
           type: redis
-          name: promo-redis
+          name: promo-redis-az
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
@@ -30,8 +34,10 @@ services:
       - key: ALLOWED_ORIGINS
         sync: false
       - key: SMS_PROVIDER
-        value: ge_sms
-      - key: GE_SMS_API_KEY
+        value: az_sms
+      - key: AZ_SMS_API_KEY
+        sync: false
+      - key: AZ_SMS_SENDER
         sync: false
       - key: OTP_EXPIRY_MINUTES
         value: 10
@@ -45,14 +51,14 @@ services:
         value: 100
 
   - type: redis
-    name: promo-redis
-    region: oregon
+    name: promo-redis-az
+    region: frankfurt
     plan: free
     maxmemoryPolicy: noeviction
     ipAllowList: []
 
 databases:
-  - name: promo-db
+  - name: promo-db-az
     plan: free
     databaseName: promo_admin
     user: promo_admin

@@ -156,7 +156,7 @@ Total: 24 TypeScript files + 2 SQL files
 
 ### Configuration Required
 - **Email Service**: Update `SMTP_*` in `.env`
-- **SMS Service**: Update `TWILIO_*` or implement your provider in `src/infra/sms/service.ts`
+- **SMS Service**: sender.ge (Georgia) default; add az_sms/am_sms for other regions
 
 ## Documentation
 
@@ -201,7 +201,7 @@ The backend is complete. Next phase:
 - **Validation**: Zod
 - **Password**: bcrypt
 - **Email**: Nodemailer
-- **SMS**: Twilio-ready (mock currently)
+- **SMS**: sender.ge (Georgia) default
 - **Security**: Helmet, CORS, rate-limit
 
 ## Performance Considerations

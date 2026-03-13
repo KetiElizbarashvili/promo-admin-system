@@ -249,6 +249,14 @@ export async function unlockParticipant(
   });
 }
 
+export async function deleteParticipant(uniqueId: string): Promise<boolean> {
+  const result = await pool.query(
+    'DELETE FROM participants WHERE unique_id = $1',
+    [uniqueId]
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
 export async function checkFieldExists(
   field: 'phone' | 'email' | 'gov_id',
   value: string

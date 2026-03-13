@@ -33,10 +33,24 @@ const envSchema = z.object({
   SMTP_PASSWORD: z.string().optional(),
   SMTP_FROM: z.string().email().optional(),
 
-  SMS_PROVIDER: z.string().optional(),
-  TWILIO_ACCOUNT_SID: z.string().optional(),
-  TWILIO_AUTH_TOKEN: z.string().optional(),
-  TWILIO_PHONE_NUMBER: z.string().optional(),
+  // Region for multi-host deployment: az (Azerbaijan), ge (Georgia), am (Armenia)
+  REGION: z.enum(['az', 'ge', 'am']).optional(),
+
+  SMS_PROVIDER: z.enum(['ge_sms', 'az_sms', 'am_sms', 'mock']).optional(),
+
+  // Azerbaijan SMS provider (e.g. D7 Networks, SMSPM)
+  AZ_SMS_API_KEY: z.string().optional(),
+  AZ_SMS_SENDER: z.string().optional(),
+  AZ_SMS_API_URL: z.string().url().optional(),
+
+  // Georgia SMS provider (sender.ge)
+  GE_SMS_API_KEY: z.string().optional(),
+  GE_SMS_API_URL: z.string().optional(),
+
+  // Armenia SMS provider (e.g. EasySendSMS)
+  AM_SMS_API_KEY: z.string().optional(),
+  AM_SMS_SENDER: z.string().optional(),
+  AM_SMS_API_URL: z.string().url().optional(),
 
   PUBLIC_BASE_URL: z.string().url().default('http://localhost:3000'),
   UPLOAD_DIR: z.string().default('uploads'),

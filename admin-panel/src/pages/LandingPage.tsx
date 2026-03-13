@@ -48,7 +48,7 @@ const LANDING_COPY: Record<Lang, LandingCopy> = {
   geo: {
     enterHere: 'Enter Here',
     howToWin: 'How To Win',
-    officialTagline: 'Official Chocolate Bar of Formula 1®',
+    officialTagline: 'Formula 1®-ის ოფიციალური პარტნიორი',
     leaderboardNav: ['პრიზები', 'გამარჯვებულები', 'წესები', 'კონტაქტი'],
     searchPlaceholder: 'ჩაწერე შენი უნიკალური კოდი',
     searchButton: 'ძიება',
@@ -141,7 +141,7 @@ const LANDING_COPY: Record<Lang, LandingCopy> = {
   aze: {
     enterHere: 'Burada Qoşul',
     howToWin: 'Necə Qazanmaq Olar',
-    officialTagline: 'Formula 1®-in rəsmi şokolad batoncuğu',
+    officialTagline: 'Formula 1®-in rəsmi tərəfdaşı',
     leaderboardNav: ['Mükafatlar', 'Qaliblər', 'Qaydalar', 'Əlaqə'],
     searchPlaceholder: 'Unikal kodunu daxil et',
     searchButton: 'Axtar',
@@ -234,7 +234,7 @@ const LANDING_COPY: Record<Lang, LandingCopy> = {
   arm: {
     enterHere: 'Մասնակցիր այստեղ',
     howToWin: 'Ինչպես հաղթել',
-    officialTagline: 'Formula 1®-ի պաշտոնական շոկոլադե բատոն',
+    officialTagline: 'Formula 1®-ի պաշտոնական գործընկեր',
     leaderboardNav: ['Մրցանակներ', 'Հաղթողներ', 'Կանոններ', 'Կապ'],
     searchPlaceholder: 'Մուտքագրիր քո եզակի կոդը',
     searchButton: 'Որոնել',

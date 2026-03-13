@@ -92,4 +92,8 @@ export const participantApi = {
   unlock: async (uniqueId: string): Promise<void> => {
     await api.post(`/participants/${uniqueId}/unlock`);
   },
+
+  delete: async (uniqueId: string): Promise<void> => {
+    await api.delete(`/participants/${uniqueId}`);
+  },
 };

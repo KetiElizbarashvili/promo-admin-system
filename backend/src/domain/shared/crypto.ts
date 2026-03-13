@@ -50,9 +50,6 @@ export function generateUsername(firstName: string, lastName: string): string {
 }
 
 export function generateOTP(): string {
-  if (process.env.NODE_ENV === 'development' || process.env.TEST_MODE === 'true') {
-    return '111111';
-  }
   return randomInt(100000, 1000000).toString();
 }
 

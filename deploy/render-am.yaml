@@ -1,8 +1,9 @@
+# Armenia deployment - use with: REGION=am, SMS_PROVIDER=am_sms
 services:
   - type: web
-    name: kitkat-promo-backend
+    name: kitkat-promo-backend-am
     runtime: node
-    region: oregon
+    region: frankfurt
     plan: free
     rootDir: backend
     buildCommand: npm install --include=dev && npm run build
@@ -10,16 +11,18 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: REGION
+        value: am
       - key: PORT
         value: 3000
       - key: DATABASE_URL
         fromDatabase:
-          name: promo-db
+          name: promo-db-am
           property: connectionString
       - key: REDIS_URL
         fromService:
           type: redis
-          name: promo-redis
+          name: promo-redis-am
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
@@ -30,8 +33,10 @@ services:
       - key: ALLOWED_ORIGINS
         sync: false
       - key: SMS_PROVIDER
-        value: ge_sms
-      - key: GE_SMS_API_KEY
+        value: am_sms
+      - key: AM_SMS_API_KEY
+        sync: false
+      - key: AM_SMS_SENDER
         sync: false
       - key: OTP_EXPIRY_MINUTES
         value: 10
@@ -45,14 +50,14 @@ services:
         value: 100
 
   - type: redis
-    name: promo-redis
-    region: oregon
+    name: promo-redis-am
+    region: frankfurt
     plan: free
     maxmemoryPolicy: noeviction
     ipAllowList: []
 
 databases:
-  - name: promo-db
+  - name: promo-db-am
     plan: free
     databaseName: promo_admin
     user: promo_admin

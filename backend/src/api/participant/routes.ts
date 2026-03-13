@@ -11,6 +11,7 @@ import {
   addPoints,
   lockParticipant,
   unlockParticipant,
+  deleteParticipant,
   checkFieldExists,
 } from '../../domain/participant/service';
 import {
@@ -29,7 +30,14 @@ const startRegistrationSchema = z.object({
   firstName: z.string().min(1).max(100),
   lastName: z.string().min(1).max(100),
   govId: z.string().min(1).max(50),
-  phone: z.string().regex(/^[0-9]{9,15}$/),
+  phone: z.string().min(9).max(15).refine(
+    (p) => {
+      const d = p.replace(/\D/g, '');
+      const local = d.startsWith('995') ? d.slice(3) : d;
+      return local.length === 9 && /^5[0-9]{8}$/.test(local);
+    },
+    { message: 'Georgian mobile: +995 5XX XXX XXX' }
+  ),
   email: z.string().email(),
 });
 
@@ -92,7 +100,11 @@ router.post(
 
       const sessionId = await startVerification(phone, email);
 
-      await sendPhoneOTP(sessionId);
+      const otpResult = await sendPhoneOTP(sessionId);
+      if (!otpResult.success) {
+        res.status(503).json({ error: otpResult.error });
+        return;
+      }
 
       res.json({
         message: 'Registration started. Phone verification code sent.',
@@ -181,7 +193,8 @@ router.post(
         type === 'phone' ? await sendPhoneOTP(sessionId) : await sendEmailOTP(sessionId);
 
       if (!result.success) {
-        res.status(400).json({ error: result.error });
+        const status = result.error?.includes('Whitelist') ? 503 : 400;
+        res.status(status).json({ error: result.error });
         return;
       }
 
@@ -353,6 +366,26 @@ router.post(
       res.json({ message: 'Participant unlocked successfully' });
     } catch (error) {
       res.status(500).json({ error: 'Failed to unlock participant' });
+    }
+  }
+);
+
+router.delete(
+  '/:uniqueId',
+  authenticateToken,
+  requireRole(['SUPER_ADMIN']),
+  async (req, res) => {
+    try {
+      const deleted = await deleteParticipant(req.params.uniqueId);
+
+      if (!deleted) {
+        res.status(404).json({ error: 'Participant not found' });
+        return;
+      }
+
+      res.json({ message: 'Participant deleted successfully' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to delete participant' });
     }
   }
 );

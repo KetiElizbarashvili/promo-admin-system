@@ -26,8 +26,10 @@ export function RegisterParticipantPage() {
     if (!/^\d{11}$/.test(formData.govId)) {
       errors.govId = 'Government ID must be exactly 11 digits';
     }
-    if (!/^[0-9]{9,15}$/.test(formData.phone)) {
-      errors.phone = 'Phone must be 9–15 digits, no spaces or symbols (e.g. 995555123456)';
+    const phoneDigits = formData.phone.replace(/\D/g, '');
+    const georgianPhone = phoneDigits.startsWith('995') ? phoneDigits.slice(3) : phoneDigits;
+    if (georgianPhone.length !== 9 || !/^5[0-9]{8}$/.test(georgianPhone)) {
+      errors.phone = 'Georgian mobile: +995 5XX XXX XXX (e.g. +995555123456)';
     }
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
@@ -230,12 +232,13 @@ export function RegisterParticipantPage() {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => {
-                    setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '').slice(0, 15) });
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 15);
+                    setFormData({ ...formData, phone: val });
                     if (fieldErrors.phone) setFieldErrors((prev) => ({ ...prev, phone: undefined }));
                   }}
                   className={`input ${fieldErrors.phone ? 'border-red-500 focus:ring-red-500' : ''}`}
-                  placeholder="995555123456"
-                  maxLength={15}
+                  placeholder="+995 555 123 456"
+                  maxLength={18}
                   inputMode="tel"
                   required
                 />
@@ -264,11 +267,6 @@ export function RegisterParticipantPage() {
             <form onSubmit={handleVerifyPhone} className="space-y-4 sm:space-y-6">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Phone Verification</h2>
               <p className="text-sm sm:text-base text-gray-600">Enter the 6-digit code sent to {formData.phone}</p>
-              {import.meta.env.VITE_TEST_MODE === 'true' && (
-                <div className="bg-yellow-50 border border-yellow-300 rounded-lg px-4 py-2 text-sm text-yellow-800">
-                  Test mode: use code <span className="font-bold tracking-widest">111111</span>
-                </div>
-              )}
 
               <div>
                 <label className="label">Verification Code</label>
@@ -304,11 +302,6 @@ export function RegisterParticipantPage() {
             <form onSubmit={handleVerifyEmail} className="space-y-4 sm:space-y-6">
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Email Verification</h2>
               <p className="text-sm sm:text-base text-gray-600">Enter the 6-digit code sent to {formData.email}</p>
-              {import.meta.env.VITE_TEST_MODE === 'true' && (
-                <div className="bg-yellow-50 border border-yellow-300 rounded-lg px-4 py-2 text-sm text-yellow-800">
-                  Test mode: use code <span className="font-bold tracking-widest">111111</span>
-                </div>
-              )}
 
               <div>
                 <label className="label">Verification Code</label>

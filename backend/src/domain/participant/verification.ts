@@ -57,7 +57,16 @@ export async function sendPhoneOTP(sessionId: string): Promise<{ success: boolea
   const codeHash = await hashCode(code);
 
   await setOTP(`otp:phone:${session.phone}`, codeHash, env.OTP_EXPIRY_MINUTES * 60);
-  await sendOTPSMS(session.phone, code);
+
+  try {
+    await sendOTPSMS(session.phone, code);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes('unauthorized ip') || msg.includes('401')) {
+      return { success: false, error: 'SMS provider rejected request. Whitelist your server IP in sender.ge dashboard.' };
+    }
+    return { success: false, error: 'Failed to send SMS. Please try again later.' };
+  }
 
   return { success: true };
 }

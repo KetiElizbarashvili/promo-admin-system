@@ -3,7 +3,7 @@ import { Layout } from '../components/layout/Layout';
 import { useToast } from '../hooks/useToast';
 import { participantApi } from '../api/participant';
 import type { Participant } from '../types';
-import { Search, Plus, Lock, Unlock, User } from 'lucide-react';
+import { Search, Plus, Lock, Unlock, User, Trash2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export function ParticipantsPage() {
@@ -111,6 +111,22 @@ export function ParticipantsPage() {
       setParticipants(participants.map(p => p.uniqueId === uniqueId ? updated : p));
     } catch (err: any) {
       showError(err.response?.data?.error || 'Failed to unlock participant');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (uniqueId: string) => {
+    if (!confirm('Delete this participant? This cannot be undone.')) return;
+
+    setLoading(true);
+    try {
+      await participantApi.delete(uniqueId);
+      success('Participant deleted successfully');
+      setSelectedParticipant(null);
+      setParticipants(participants.filter(p => p.uniqueId !== uniqueId));
+    } catch (err: any) {
+      showError(err.response?.data?.error || 'Failed to delete participant');
     } finally {
       setLoading(false);
     }
@@ -262,6 +278,16 @@ export function ParticipantsPage() {
                           <span>Unlock Participant</span>
                         </button>
                       )
+                    )}
+                    {isSuperAdmin && (
+                      <button
+                        onClick={() => handleDelete(selectedParticipant.uniqueId)}
+                        disabled={loading}
+                        className="btn btn-secondary w-full flex items-center justify-center space-x-2 text-sm sm:text-base border-red-200 text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span>Delete Participant</span>
+                      </button>
                     )}
                   </div>
                 ) : (

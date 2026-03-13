@@ -15,7 +15,7 @@ Admin panel and backend API for the KitKat promotional campaign — participant 
 | Auth | JWT (HttpOnly cookie) + bcrypt |
 | Validation | Zod |
 | Email | Nodemailer (SMTP) |
-| SMS | Twilio (OTP delivery) |
+| SMS | sender.ge (Georgia, OTP + Unique ID) |
 | Frontend | React 19 + TypeScript 5 + Vite 7 |
 | UI | Tailwind CSS 3 |
 | Data fetching | TanStack Query 5 + Axios |
@@ -45,7 +45,7 @@ promo-admin-system/
 │   │   │   └── shared/       # Crypto utilities (OTP, password, username)
 │   │   ├── infra/            # External integrations
 │   │   │   ├── email/        # Nodemailer service
-│   │   │   ├── sms/          # Twilio SMS service
+│   │   │   ├── sms/          # SMS service (sender.ge default)
 │   │   │   └── redis/        # Redis client + token revocation
 │   │   ├── middleware/       # Auth, validator, rate limiter, logger
 │   │   └── config/           # env.ts (Zod-validated), database.ts
@@ -257,7 +257,7 @@ docker compose up -d
 ```bash
 cd backend
 cp .env.example .env
-# Fill in SMTP and Twilio credentials in .env
+# Fill in SMTP and GE_SMS_API_KEY (sender.ge) in .env
 npm install
 npm run migrate:up
 npm run dev
@@ -303,9 +303,7 @@ npm run dev
 | `SMTP_USER` | ✓ | SMTP username |
 | `SMTP_PASSWORD` | ✓ | SMTP password |
 | `SMTP_FROM` | ✓ | Sender address |
-| `TWILIO_ACCOUNT_SID` | ✓ | Twilio account SID |
-| `TWILIO_AUTH_TOKEN` | ✓ | Twilio auth token |
-| `TWILIO_PHONE_NUMBER` | ✓ | Twilio sending number |
+| `GE_SMS_API_KEY` | ✓ | sender.ge API key (Georgia SMS) |
 | `OTP_EXPIRY_MINUTES` | — | Default `10` |
 | `OTP_MAX_ATTEMPTS` | — | Default `3` |
 | `OTP_RESEND_COOLDOWN_SECONDS` | — | Default `60` |

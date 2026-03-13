@@ -15,7 +15,7 @@
    - Redis instance
 7. Add environment variables in the Render dashboard:
    - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` (email config)
-   - SMS provider settings (optional for now)
+   - SMS provider settings (see Multi-Region Deployment below)
 
 ### Manual Deployment:
 
@@ -113,3 +113,30 @@ Test login from frontend - it should now work!
 - **Heroku**: Requires credit card, limited free hours
 
 **Recommendation**: Start with Render (easiest + free), upgrade if you need 24/7 uptime.
+
+---
+
+## Multi-Region Deployment (AZ, GE, AM)
+
+Deploy separate instances for Azerbaijan, Georgia, and Armenia. Each uses its own SMS provider.
+
+### Blueprint files
+
+- `deploy/render-az.yaml` — Azerbaijan (D7 Networks)
+- `deploy/render-ge.yaml` — Georgia (SMSPM)
+- `deploy/render-am.yaml` — Armenia (EasySendSMS)
+
+### Per-region env vars
+
+| Region | SMS_PROVIDER | Required env vars |
+|--------|--------------|-------------------|
+| Azerbaijan | `az_sms` | `AZ_SMS_API_KEY`, `AZ_SMS_SENDER` |
+| Georgia | `ge_sms` | `GE_SMS_API_KEY` (sender.ge) |
+| Armenia | `am_sms` | `AM_SMS_API_KEY`, `AM_SMS_SENDER` |
+
+### Deploy steps
+
+1. Create 3 Render Blueprints (or 3 projects), one per region.
+2. For each: New → Blueprint → select `deploy/render-az.yaml` (or ge/am).
+3. Set the secret env vars in the Render dashboard for that service.
+4. Run `npm run migrate:up` in the Shell after first deploy.

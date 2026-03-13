@@ -1,8 +1,9 @@
+# Georgia deployment - use with: REGION=ge, SMS_PROVIDER=ge_sms
 services:
   - type: web
-    name: kitkat-promo-backend
+    name: kitkat-promo-backend-ge
     runtime: node
-    region: oregon
+    region: frankfurt
     plan: free
     rootDir: backend
     buildCommand: npm install --include=dev && npm run build
@@ -10,16 +11,18 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: REGION
+        value: ge
       - key: PORT
         value: 3000
       - key: DATABASE_URL
         fromDatabase:
-          name: promo-db
+          name: promo-db-ge
           property: connectionString
       - key: REDIS_URL
         fromService:
           type: redis
-          name: promo-redis
+          name: promo-redis-ge
           property: connectionString
       - key: JWT_SECRET
         generateValue: true
@@ -45,14 +48,14 @@ services:
         value: 100
 
   - type: redis
-    name: promo-redis
-    region: oregon
+    name: promo-redis-ge
+    region: frankfurt
     plan: free
     maxmemoryPolicy: noeviction
     ipAllowList: []
 
 databases:
-  - name: promo-db
+  - name: promo-db-ge
     plan: free
     databaseName: promo_admin
     user: promo_admin

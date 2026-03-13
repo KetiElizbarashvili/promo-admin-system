@@ -16,7 +16,7 @@ TECHNOLOGY STACK
   Database         PostgreSQL
   Cache/Sessions   Redis
   Email delivery   SMTP (Nodemailer)
-  SMS delivery     Twilio
+  SMS delivery     sender.ge (Georgia)
   Hosting          Vercel (frontend)
 
 --------------------------------------------------------------------------------

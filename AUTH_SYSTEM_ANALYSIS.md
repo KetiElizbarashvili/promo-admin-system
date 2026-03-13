@@ -197,8 +197,8 @@ POST /api/auth/reset-password
 SMTP_HOST=smtp.gmail.com
 SMTP_USER=your-email@gmail.com
 SMTP_PASSWORD=your-app-password
-SMS_PROVIDER=twilio
-TWILIO_ACCOUNT_SID=your-account-sid
+SMS_PROVIDER=ge_sms
+GE_SMS_API_KEY=your-sender-ge-api-key
 ```
 
 #### Impact:
@@ -208,7 +208,7 @@ TWILIO_ACCOUNT_SID=your-account-sid
 
 #### Required:
 - Configure real SMTP (Gmail, SendGrid, Mailgun, etc.)
-- Configure SMS provider (Twilio, SNS, etc.)
+- Configure SMS provider (sender.ge default)
 - Test email delivery
 - Monitor email/SMS failures
 

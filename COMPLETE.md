@@ -304,7 +304,7 @@ Tests:
 - PostgreSQL: $15-30 (managed service)
 - Redis: $10-20 (managed service)
 - Frontend hosting: $0 (Vercel/Netlify free tier)
-- SMS (Twilio): ~$0.01 per SMS
+- SMS (sender.ge): per-provider pricing
 - Email (SendGrid): Free up to 100/day
 
 **Total: ~$35-75/month** (excluding SMS volume)
@@ -325,7 +325,7 @@ Everything! The system is fully functional:
 ## Next Steps
 
 1. **Configure Services**:
-   - Set up Twilio for SMS
+   - Set up GE_SMS_API_KEY (sender.ge)
    - Set up SendGrid/Gmail for email
 
 2. **Test Thoroughly**:

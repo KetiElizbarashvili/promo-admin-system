@@ -481,7 +481,7 @@ The system sends automated messages in the following situations:
   │ Password reset          │ Email    │ New auto-generated password        │
   └─────────────────────────┴──────────┴────────────────────────────────────┘
 
-  SMS provider: Twilio
+  SMS provider: sender.ge (Georgia)
   Email provider: SMTP (configurable)
 
 
@@ -546,7 +546,7 @@ SECTION 7 — TECHNOLOGY OVERVIEW (NON-TECHNICAL SUMMARY)
   Cache           Redis — used for session management and OTP storage,
                   enabling instant session revocation
 
-  SMS             Twilio — sends OTP codes and Unique IDs to participants
+  SMS             sender.ge — sends OTP codes and Unique IDs to participants
                   via text message
 
   Email           SMTP — sends OTP codes, Unique IDs, and staff credentials

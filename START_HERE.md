@@ -381,7 +381,7 @@ Tests all critical endpoints:
 - [ ] Change default super admin password
 - [ ] Set strong JWT_SECRET (32+ chars)
 - [ ] Configure production SMTP (SendGrid, etc.)
-- [ ] Configure SMS provider (Twilio)
+- [ ] Configure GE_SMS_API_KEY (sender.ge)
 - [ ] Review and adjust rate limits
 - [ ] Set up SSL/TLS certificates
 - [ ] Configure CORS for production domains
