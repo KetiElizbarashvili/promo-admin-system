@@ -62,6 +62,7 @@ export async function sendPhoneOTP(sessionId: string): Promise<{ success: boolea
     await sendOTPSMS(session.phone, code);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    process.stdout.write(JSON.stringify({ level: 'error', event: 'sms_send_failed', phone: session.phone, error: msg }) + '\n');
     if (msg.includes('unauthorized ip') || msg.includes('401')) {
       return { success: false, error: 'SMS provider rejected request. Whitelist your server IP in sender.ge dashboard.' };
     }
